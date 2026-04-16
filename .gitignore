@@ -1,0 +1,17 @@
+# Variáveis de ambiente — NUNCA subir ao GitHub
+.env
+.env.local
+.env.production
+
+# Flutter
+build/
+.dart_tool/
+.packages
+
+# Android
+android/.gradle
+android/local.properties
+
+# iOS
+ios/Pods/
+ios/.symlinks/
