@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADVB — Igreja App</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c9a84c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ADVB">
+<link rel="apple-touch-icon" href="icon.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cinzel:wght@400;600&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#c9a84c;--gold-l:#e8c97a;--gold-dim:rgba(201,168,76,.15);
+  --dark:#0d0d1a;--dark2:#12122a;--dark3:#1a1a40;
+  --white:#f8f4ee;--text:#e0d8c8;--muted:#8a7f70;
+  --card:rgba(0,0,0,.55);--border:rgba(201,168,76,.18);
+  --danger:#e07b5a;--ok:#5aad7b;--r:16px;
+}
+body.light{--dark:#f4efe6;--dark2:#ece5d5;--dark3:#ddd4c0;--white:#1a1510;--text:#2a2218;--muted:#6a6055;--card:rgba(0,0,0,.04);--border:rgba(150,110,40,.22);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Lato',sans-serif;background:var(--dark);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+#bgLayer{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;pointer-events:none;transition:opacity .3s}
+#bgOverlay{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 80% 60% at 10% 5%,rgba(15,52,96,.55) 0%,transparent 65%),
+             radial-gradient(ellipse 50% 50% at 90% 95%,rgba(201,168,76,.06) 0%,transparent 65%);}
+body.light #bgOverlay{background:radial-gradient(ellipse 80% 60% at 10% 5%,rgba(201,168,76,.1) 0%,transparent 65%)}
+h1,h2,h3{font-family:'Playfair Display',serif;line-height:1.2}
+.hidden{display:none!important}
+.z1{position:relative;z-index:1}
+
+/* Header */
+header{background:linear-gradient(160deg,var(--dark2),var(--dark3));border-bottom:1px solid var(--border);position:relative;overflow:hidden;z-index:2}
+header::after{content:'✦';position:absolute;font-size:320px;color:rgba(201,168,76,.03);top:-60px;left:50%;transform:translateX(-50%);pointer-events:none;font-family:'Playfair Display',serif}
+#bannerImg{width:100%;height:auto;max-height:420px;object-fit:contain;object-position:center;display:none;background:#000}
+@media(max-width:600px){#bannerImg{max-height:260px}}
+#headerText{padding:34px 20px 26px;text-align:center}
+#churchTitle{font-family:'Cinzel',serif;font-size:2.3rem;color:var(--gold);letter-spacing:5px;text-shadow:0 4px 30px rgba(201,168,76,.3)}
+header p{color:var(--muted);font-size:.75rem;letter-spacing:3px;text-transform:uppercase;margin-top:8px}
+
+/* User Bar */
+.ubar{background:rgba(0,0,0,.28);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:2;backdrop-filter:blur(12px)}
+.ubar-left{display:flex;align-items:center;gap:10px;cursor:pointer;transition:opacity .2s}
+.ubar-left:hover{opacity:.8}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--gold-dim);border:1.5px solid rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:700;color:var(--gold);overflow:hidden;flex-shrink:0}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.ubar-name{font-size:.88rem;color:var(--text);font-weight:700}
+.ubar-role{font-size:.68rem;color:var(--muted)}
+.ubar-right{display:flex;align-items:center;gap:8px}
+.streak-pill{display:flex;align-items:center;gap:4px;font-size:.8rem;color:var(--gold);background:var(--gold-dim);padding:4px 10px;border-radius:50px;border:1px solid rgba(201,168,76,.2)}
+
+/* Continue Banner */
+#contBanner{display:none;background:linear-gradient(90deg,rgba(201,168,76,.1),rgba(201,168,76,.04));border-bottom:1px solid var(--border);padding:10px 20px;text-align:center;z-index:2;position:relative;animation:slideDown .4s ease}
+#contBanner .inner{display:inline-flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center}
+#contBanner span{font-size:.86rem;color:var(--muted)}
+#contBtn{background:var(--gold);color:var(--dark);border:none;border-radius:50px;padding:7px 18px;font-family:'Lato',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;transition:all .2s}
+#contBtn:hover{background:var(--gold-l);transform:translateY(-1px)}
+
+/* Nav */
+nav{display:flex;justify-content:center;gap:6px;padding:16px 20px;flex-wrap:wrap;position:relative;z-index:2}
+nav button{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:9px 20px;border-radius:50px;cursor:pointer;font-family:'Lato',sans-serif;font-size:.83rem;letter-spacing:.5px;transition:all .25s;backdrop-filter:blur(8px)}
+nav button.active,nav button:hover{background:var(--gold);color:var(--dark);border-color:var(--gold);font-weight:700}
+
+/* Container & Sections */
+.container{max-width:900px;margin:auto;padding:0 20px 100px;position:relative;z-index:1}
+.section{display:none}
+.section.active{display:block;animation:fadeUp .4s ease}
+
+/* Card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:26px;margin-bottom:20px;backdrop-filter:blur(12px)}
+.card h2{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.35rem;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+
+/* Versículo */
+.vod{background:linear-gradient(135deg,rgba(0,0,0,.6),rgba(0,0,0,.45));border:1px solid rgba(201,168,76,.28);border-radius:var(--r);padding:24px 28px;margin-bottom:20px;position:relative;overflow:hidden}
+.vod::before{content:'"';position:absolute;font-family:'Playfair Display',serif;font-size:150px;color:rgba(201,168,76,.06);top:-30px;left:8px;line-height:1;pointer-events:none}
+.vod-lbl{font-size:.68rem;text-transform:uppercase;letter-spacing:2.5px;color:var(--gold);margin-bottom:10px}
+.vod-txt{font-family:'Playfair Display',serif;font-size:1.08rem;line-height:1.75;color:var(--text);font-style:italic;margin-bottom:12px}
+.vod-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.vod-ref{font-size:.8rem;color:var(--muted)}
+
+/* Schedule */
+.sched-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:16px}
+.sched-item{background:rgba(201,168,76,.04);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:all .25s}
+.sched-item:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 14px 40px rgba(0,0,0,.3)}
+.sched-photo{width:100%;height:auto;object-fit:contain}
+.sched-ph{width:100%;height:200px;display:flex;align-items:center;justify-content:center;background:rgba(201,168,76,.05);border-bottom:1px solid var(--border);font-size:2.6rem;color:rgba(201,168,76,.2)}
+.sched-info{padding:15px}
+.sched-day{font-size:.68rem;text-transform:uppercase;letter-spacing:2px;color:var(--gold);font-weight:700;margin-bottom:4px}
+.sched-name{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--white);margin-bottom:3px}
+.sched-time{color:var(--muted);font-size:.82rem}
+.yt-btn{display:inline-flex;align-items:center;gap:7px;margin-top:11px;background:#ff0000;color:#fff;border:none;border-radius:50px;padding:7px 15px;font-size:.76rem;font-family:'Lato',sans-serif;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s}
+.yt-btn:hover{background:#cc0000;transform:translateY(-1px)}
+.yt-btn svg{width:15px;height:15px;fill:#fff;flex-shrink:0}
+
+/* Bible */
+.bsearch{position:relative;margin-bottom:18px}
+.bsearch input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:50px;padding:12px 20px 12px 44px;color:var(--white);font-family:'Lato',sans-serif;font-size:.94rem;transition:all .2s}
+.bsearch input:focus{outline:none;border-color:var(--gold);background:rgba(201,168,76,.05)}
+.bsearch input::placeholder{color:var(--muted)}
+.bsearch .si{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+#searchRes{display:none;margin-bottom:14px;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.sr-item{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;font-size:.88rem;line-height:1.6;transition:background .2s}
+.sr-item:last-child{border-bottom:none}
+.sr-item:hover{background:rgba(201,168,76,.08)}
+.sr-ref{color:var(--gold);font-size:.78rem;font-weight:700;display:block;margin-bottom:2px}
+mark{background:rgba(201,168,76,.35);color:var(--white);border-radius:3px;padding:0 2px}
+.test-title{font-family:'Playfair Display',serif;color:var(--gold);font-size:.95rem;margin:16px 0 9px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.grid-livros{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:9px}
+.livro-btn{background:rgba(201,168,76,.05);border:1px solid var(--border);border-radius:10px;padding:13px 10px;cursor:pointer;text-align:center;color:var(--text);font-size:.83rem;font-family:'Lato',sans-serif;transition:all .2s;position:relative}
+.livro-btn:hover{border-color:var(--gold);background:rgba(201,168,76,.14);color:var(--gold);transform:translateY(-2px)}
+.livro-btn .badge-t{font-size:.62rem;color:var(--muted);display:block;margin-top:3px;text-transform:uppercase;letter-spacing:1px}
+.livro-btn .dot{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--gold)}
+.grid-caps{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:7px;margin-top:14px}
+.cap-btn{background:rgba(201,168,76,.05);border:1px solid var(--border);border-radius:8px;padding:11px 5px;cursor:pointer;text-align:center;color:var(--text);font-size:.88rem;font-family:'Lato',sans-serif;transition:all .2s}
+.cap-btn:hover{border-color:var(--gold);color:var(--gold)}
+.cap-btn.lido{background:rgba(201,168,76,.18);border-color:var(--gold);color:var(--gold-l)}
+.back-btn{background:rgba(0,0,0,.45);border:1px solid var(--border);color:var(--muted);padding:8px 18px;border-radius:50px;cursor:pointer;font-family:'Lato',sans-serif;font-size:.83rem;margin-bottom:16px;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.back-btn:hover{color:var(--gold);border-color:var(--gold)}
+.verso{padding:10px 6px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.96rem;line-height:1.85;color:var(--text);transition:background .15s;border-radius:4px}
+.verso:hover{background:rgba(201,168,76,.04)}
+.verso b{color:var(--gold);font-size:.78rem;margin-right:6px}
+.nav-caps{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+.ncap{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:10px 20px;border-radius:50px;cursor:pointer;font-family:'Lato',sans-serif;font-size:.84rem;transition:all .2s;flex:1}
+.ncap:hover{border-color:var(--gold);color:var(--gold)}
+.ncap:disabled{opacity:.3;cursor:default}
+.lido-lbl{display:flex;align-items:center;gap:10px;margin-top:18px;padding:13px;background:rgba(201,168,76,.06);border-radius:10px;border:1px solid var(--border);cursor:pointer;color:var(--text);font-size:.88rem;transition:all .2s}
+.lido-lbl:hover{border-color:var(--gold)}
+.lido-lbl input{accent-color:var(--gold);width:17px;height:17px;cursor:pointer}
+.offline-badge{display:none;background:rgba(224,123,90,.12);border:1px solid rgba(224,123,90,.3);color:var(--danger);padding:6px 14px;border-radius:50px;font-size:.78rem;margin-bottom:10px}
+.prog-wrap-bk{margin-bottom:14px}
+.livro-header{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.1rem;margin-bottom:8px}
+
+/* ── VIDEOS ──────────────────────────────────────────── */
+.vid-categories{display:flex;flex-direction:column;gap:12px}
+.vid-cat-item{background:rgba(201,168,76,.04);border:1px solid var(--border);border-radius:14px;padding:20px 22px;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.vid-cat-item:hover{border-color:var(--gold);background:rgba(201,168,76,.1);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.vid-cat-name{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--white)}
+.vid-cat-count{font-size:.75rem;color:var(--muted);margin-top:3px}
+.vid-cat-arrow{color:var(--gold);font-size:1.2rem;opacity:.6}
+.vid-list{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+.vid-item{background:rgba(201,168,76,.04);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .25s}
+.vid-item:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.vid-thumb{width:100%;height:180px;background:rgba(0,0,0,.4);position:relative;overflow:hidden}
+.vid-thumb img{width:100%;height:100%;object-fit:cover}
+.vid-play-btn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);transition:background .2s}
+.vid-item:hover .vid-play-btn{background:rgba(0,0,0,.5)}
+.vid-play-icon{width:56px;height:56px;background:rgba(255,0,0,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 4px 20px rgba(255,0,0,.4)}
+.vid-info{padding:16px}
+.vid-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--white);margin-bottom:5px;line-height:1.3}
+.vid-desc{font-size:.8rem;color:var(--muted);line-height:1.5;margin-bottom:6px}
+.vid-date{font-size:.72rem;color:var(--muted);opacity:.7}
+
+/* Video modal player */
+#videoPlayerWrap{position:relative;width:100%;padding-bottom:56.25%;border-radius:10px;overflow:hidden;margin-bottom:16px}
+#videoPlayerWrap iframe{position:absolute;inset:0;width:100%;height:100%}
+
+/* ── PLANOS GLOBAIS ──────────────────────────────────── */
+.planos-list{display:flex;flex-direction:column;gap:12px}
+.plano-card{background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:14px;padding:20px 22px;cursor:pointer;transition:all .25s}
+.plano-card:hover{border-color:var(--gold);background:rgba(201,168,76,.1);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.plano-card-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.plano-card-name{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--white)}
+.plano-card-badge{font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--dark);background:var(--gold);padding:3px 10px;border-radius:50px}
+.plano-card-meta{font-size:.8rem;color:var(--muted);line-height:1.6}
+.plano-detail{margin-top:4px}
+.plano-day-list{max-height:400px;overflow-y:auto;padding-right:4px}
+.plano-day-item{display:flex;gap:10px;align-items:flex-start;padding:9px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.83rem}
+.plano-day-n{min-width:50px;font-weight:700;color:var(--gold);font-size:.78rem;padding-top:2px}
+.plano-day-c{color:var(--text);line-height:1.5;flex:1}
+
+/* Plan form (personal) */
+.plan-form{display:flex;flex-direction:column;gap:16px}
+.flbl{font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);display:block;margin-bottom:6px}
+input[type=number]{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--white);font-size:.98rem;font-family:'Lato',sans-serif;width:100%;max-width:250px;transition:border-color .2s}
+input[type=number]:focus{outline:none;border-color:var(--gold)}
+.livros-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:7px}
+.lchk{display:flex;align-items:center;gap:8px;background:rgba(201,168,76,.04);border:1px solid var(--border);border-radius:8px;padding:9px 11px;cursor:pointer;font-size:.83rem;transition:all .2s}
+.lchk:hover{border-color:var(--gold)}
+.lchk input{accent-color:var(--gold);cursor:pointer}
+.plan-btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold-l));color:var(--dark);border:none;padding:13px 28px;border-radius:50px;font-family:'Lato',sans-serif;font-weight:900;font-size:.92rem;cursor:pointer;transition:all .25s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,168,76,.35)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted);padding:13px 20px;border-radius:50px;font-family:'Lato',sans-serif;font-size:.83rem;cursor:pointer;transition:all .2s}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm{padding:8px 18px;font-size:.8rem}
+.result-card{margin-top:22px;background:rgba(201,168,76,.05);border:1px solid var(--border);border-radius:var(--r);padding:22px}
+.result-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:18px}
+.stat-box{text-align:center;padding:13px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid var(--border)}
+.stat-v{font-family:'Playfair Display',serif;font-size:1.75rem;color:var(--gold)}
+.stat-l{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+.prog-row{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-bottom:6px}
+.prog-bg{background:rgba(255,255,255,.07);border-radius:50px;height:10px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:50px;transition:width 1s ease}
+.plano-days{margin-top:18px}
+.plano-days h4{font-family:'Playfair Display',serif;color:var(--gold);margin-bottom:10px;font-size:.98rem}
+.atraso{background:rgba(224,123,90,.08);border:1px solid rgba(224,123,90,.25);border-radius:10px;padding:13px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.atraso span{color:var(--danger);font-size:.88rem;flex:1}
+.dia-item{display:flex;gap:10px;align-items:flex-start;padding:9px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.83rem;border-radius:6px;transition:background .2s}
+.dia-item:hover{background:rgba(201,168,76,.04)}
+.dia-item.done{background:rgba(90,173,123,.06)}
+.dia-n{min-width:32px;font-weight:700;color:var(--gold);font-size:.78rem;padding-top:2px}
+.dia-item.done .dia-n{color:var(--ok)}
+.dia-c{color:var(--text);line-height:1.5;flex:1}
+.dia-chk{margin-left:auto;color:var(--ok)}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:11px;margin-bottom:18px}
+.stat-mini{background:var(--gold-dim);border:1px solid var(--border);border-radius:12px;padding:15px 11px;text-align:center;transition:all .25s}
+.stat-mini:hover{border-color:var(--gold);transform:translateY(-2px)}
+.stat-mini .v{font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--gold);display:block}
+.stat-mini .l{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+/* Buttons */
+.share-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 13px;border-radius:50px;font-family:'Lato',sans-serif;font-size:.78rem;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+.share-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* Spinner */
+.spinner-wrap{text-align:center;padding:36px 0;color:var(--muted)}
+.spinner{display:inline-block;width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px}
+
+/* FABs */
+.fabs{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:9px;z-index:100}
+.fab{background:var(--dark3);border:1px solid var(--border);color:var(--muted);width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px rgba(0,0,0,.4);backdrop-filter:blur(10px)}
+.fab:hover{border-color:var(--gold);color:var(--gold);transform:scale(1.08)}
+
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex;animation:fadeIn .2s ease}
+.modal{background:var(--dark2);border:1px solid var(--border);border-radius:var(--r);padding:30px;width:100%;max-width:510px;max-height:90vh;overflow-y:auto;position:relative;animation:fadeUp .3s ease}
+.modal h2{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.3rem;margin-bottom:20px}
+.mclose{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:1.5rem;cursor:pointer;transition:color .2s;line-height:1;z-index:1}
+.mclose:hover{color:var(--gold)}
+.sec-lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);padding-bottom:7px;border-bottom:1px solid var(--border);margin:20px 0 13px}
+.minput{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:9px;padding:11px 13px;color:var(--white);font-size:.87rem;font-family:'Lato',sans-serif;transition:border-color .2s;margin-bottom:10px}
+.minput:focus{outline:none;border-color:var(--gold)}
+.minput::placeholder{color:var(--muted)}
+.minput:disabled{opacity:.6}
+.minput-no-mb{margin-bottom:0}
+
+/* Profile avatar */
+.prof-avatar{width:72px;height:72px;border-radius:50%;background:var(--gold-dim);border:2px solid rgba(201,168,76,.35);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:var(--gold);overflow:hidden;cursor:pointer;transition:all .2s;margin:0 auto 18px;position:relative}
+.prof-avatar:hover{border-color:var(--gold)}
+.prof-avatar img{width:100%;height:100%;object-fit:cover}
+.av-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;font-size:1.1rem}
+.prof-avatar:hover .av-overlay{opacity:1}
+
+/* Admin Cultos */
+.culto-box{background:rgba(201,168,76,.04);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:12px}
+.culto-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.culto-hdr-name{font-family:'Playfair Display',serif;color:var(--gold);font-size:.98rem}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.upload-area{border:2px dashed var(--border);border-radius:9px;padding:14px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.upload-area:hover{border-color:var(--gold);background:rgba(201,168,76,.04)}
+.upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-area .ui{font-size:1.5rem}
+.upload-area .ut{font-size:.78rem;color:var(--muted);margin-top:3px}
+.yt-row{display:flex;align-items:center;gap:9px;margin-top:9px;font-size:.82rem;color:var(--text)}
+.yt-row input[type=checkbox]{accent-color:#ff0000;width:15px;height:15px;cursor:pointer}
+.add-culto{background:rgba(201,168,76,.08);border:1px dashed rgba(201,168,76,.4);color:var(--gold);border-radius:10px;padding:12px;width:100%;font-family:'Lato',sans-serif;font-size:.88rem;cursor:pointer;transition:all .2s;margin-bottom:8px}
+.add-culto:hover{background:rgba(201,168,76,.15)}
+.btn-danger{background:transparent;border:1px solid rgba(224,123,90,.3);color:var(--danger);padding:9px 18px;border-radius:50px;font-family:'Lato',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;width:100%;margin-top:8px}
+.btn-danger:hover{background:rgba(224,123,90,.08)}
+.danger-sm{padding:5px 12px;font-size:.73rem;width:auto;margin:0;border-radius:50px;background:rgba(224,123,90,.1);border:1px solid rgba(224,123,90,.3);color:var(--danger);cursor:pointer;font-family:'Lato',sans-serif;transition:all .2s}
+.danger-sm:hover{background:rgba(224,123,90,.2)}
+.save-btn{background:var(--gold);color:var(--dark);border:none;padding:13px 28px;border-radius:50px;font-family:'Lato',sans-serif;font-weight:900;font-size:.92rem;cursor:pointer;width:100%;margin-top:18px;transition:all .2s}
+.save-btn:hover{background:var(--gold-l);box-shadow:0 8px 24px rgba(201,168,76,.3)}
+
+/* Toast */
+#toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark3);border:1px solid var(--gold);color:var(--white);padding:11px 22px;border-radius:50px;font-size:.86rem;opacity:0;pointer-events:none;transition:all .3s;z-index:9999;white-space:nowrap;box-shadow:0 4px 24px rgba(0,0,0,.4)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:3px}
+
+/* Tabs row inside sections */
+.sub-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.sub-tab{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:8px 18px;border-radius:50px;cursor:pointer;font-family:'Lato',sans-serif;font-size:.82rem;transition:all .2s}
+.sub-tab.active{background:var(--gold);color:var(--dark);border-color:var(--gold);font-weight:700}
+
+/* ── AVISOS ──────────────────────────────────────────── */
+.aviso-card{background:rgba(0,0,0,.55);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:12px;transition:all .25s;position:relative;overflow:hidden}
+.aviso-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--gold)}
+.aviso-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.aviso-card.urgente::before{background:var(--danger)}
+.aviso-card.urgente{border-color:rgba(224,123,90,.3)}
+.aviso-titulo{font-family:'Playfair Display',serif;font-size:1rem;color:var(--white);margin-bottom:6px}
+.aviso-texto{font-size:.86rem;color:var(--text);line-height:1.6;margin-bottom:8px}
+.aviso-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.aviso-data{font-size:.72rem;color:var(--muted)}
+.aviso-badge{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;padding:3px 9px;border-radius:50px;font-weight:700}
+.aviso-badge.urgente{background:rgba(224,123,90,.15);color:var(--danger);border:1px solid rgba(224,123,90,.3)}
+.aviso-badge.normal{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,168,76,.2)}
+
+@media(max-width:500px){
+  #churchTitle{font-size:1.6rem;letter-spacing:2px}
+  .grid-livros{grid-template-columns:repeat(auto-fill,minmax(100px,1fr))}
+  .result-stats{grid-template-columns:repeat(2,1fr)}
+  .fabs{bottom:14px;right:14px}
+  .field-row{grid-template-columns:1fr}
+  .card{padding:18px}
+  .vid-thumb{height:140px}
+}
+</style>
+</head>
+<body>
+<div id="bgLayer"></div>
+<div id="bgOverlay"></div>
+
+<!-- Header -->
+<header>
+  <img id="bannerImg" src="" alt="">
+  <div id="headerText">
+    <h1 id="churchTitle">✦ ADVB</h1>
+    <p>Programação · Bíblia · Plano de Leitura · Mídias</p>
+  </div>
+</header>
+
+<!-- User Bar -->
+<div class="ubar">
+  <div class="ubar-left" onclick="openProfile()">
+    <div class="avatar" id="navAvatar"></div>
+    <div>
+      <div class="ubar-name" id="navName">—</div>
+      <div class="ubar-role" id="navRole">—</div>
+    </div>
+  </div>
+  <div class="ubar-right">
+    <div class="streak-pill" id="navStreak" style="display:none">🔥 <span id="streakNum">0</span></div>
+    <button class="btn-ghost btn-sm" onclick="logout()">Sair</button>
+  </div>
+</div>
+
+<!-- Continue Banner -->
+<div id="contBanner">
+  <div class="inner">
+    <span>📖 Continue de onde parou:</span>
+    <button id="contBtn">—</button>
+  </div>
+</div>
+
+<!-- Nav -->
+<nav>
+  <button class="active" onclick="showSec('prog',this)">📅 Programação</button>
+  <button onclick="showSec('avisos',this)">📢 Avisos</button>
+  <button onclick="showSec('midias',this)">🎬 Cultos</button>
+  <button onclick="showSec('biblia',this)">📖 Bíblia</button>
+  <button onclick="showSec('plano',this)">🗓 Plano</button>
+  <button onclick="showSec('stats',this)">📊 Estatísticas</button>
+</nav>
+
+<div class="container">
+
+  <!-- PROGRAMAÇÃO -->
+  <div id="prog" class="section active">
+    <div class="vod">
+      <div class="vod-lbl">✦ Versículo do Dia</div>
+      <div class="vod-txt" id="vodTxt">Carregando...</div>
+      <div class="vod-foot">
+        <div class="vod-ref" id="vodRef"></div>
+        <button class="share-btn" onclick="shareVod()">🔗 Compartilhar</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>📅 Programação Semanal</h2>
+      <div class="sched-grid" id="schedGrid"></div>
+    </div>
+  </div>
+
+  <!-- AVISOS -->
+  <div id="avisos" class="section">
+    <div class="card">
+      <h2>📢 Avisos e Comunicados</h2>
+      <div id="avisosContent"></div>
+    </div>
+  </div>
+
+  <!-- MÍDIAS / VÍDEOS -->
+  <div id="midias" class="section">
+    <div class="card">
+      <h2>🎬 Cultos</h2>
+      <!-- Categorias -->
+      <div id="vidCatView">
+        <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px">Assista os cultos e eventos da nossa igreja.</p>
+        <div class="vid-categories" id="vidCatList"></div>
+      </div>
+      <!-- Lista de vídeos -->
+      <div id="vidListView" class="hidden">
+        <button class="back-btn" onclick="showVidCats()">← Voltar</button>
+        <h3 id="vidListTitle" style="font-family:'Playfair Display',serif;color:var(--gold);font-size:1.1rem;margin-bottom:16px"></h3>
+        <div class="vid-list" id="vidListContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BÍBLIA -->
+  <div id="biblia" class="section">
+    <div class="card">
+      <h2>📖 Bíblia</h2>
+      <div id="vLivros">
+                <div id="searchRes"></div>
+        <div id="livrosContent">
+          <div class="test-title">Antigo Testamento</div>
+          <div class="grid-livros" id="gridAT"></div>
+          <div class="test-title">Novo Testamento</div>
+          <div class="grid-livros" id="gridNT"></div>
+        </div>
+      </div>
+      <div id="vCaps" class="hidden">
+        <button class="back-btn" onclick="goLivros()">← Voltar</button>
+        <div class="prog-wrap-bk" id="livroProgWrap"></div>
+        <div class="grid-caps" id="gridCaps"></div>
+      </div>
+      <div id="vLeit" class="hidden">
+        <button class="back-btn" onclick="goCaps()">← Voltar</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+          <h3 id="leitTitle" style="font-family:'Playfair Display',serif;color:var(--gold);font-size:1.25rem"></h3>
+          <button class="share-btn" onclick="shareCap()">🔗 Compartilhar</button>
+        </div>
+        <div class="offline-badge" id="offBadge">⚠️ Sem conexão — exibindo cache</div>
+        <div id="leitContent"><div class="spinner-wrap"><div class="spinner"></div><p>Carregando...</p></div></div>
+        <label class="lido-lbl"><input type="checkbox" id="checkLido"> ✔️ Marcar capítulo como lido</label>
+        <div class="nav-caps">
+          <button class="ncap" id="btnAnt" onclick="navCap(-1)">← Anterior</button>
+          <button class="ncap" id="btnProx" onclick="navCap(1)">Próximo →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLANO -->
+  <div id="plano" class="section">
+    <!-- Sub-tabs: Planos Globais / Meu Plano -->
+    <div class="sub-tabs">
+      <button class="sub-tab active" onclick="showPlanoTab('global',this)">🌐 Planos da Igreja</button>
+      <button class="sub-tab" onclick="showPlanoTab('personal',this)">✍️ Criar Plano Pessoal</button>
+    </div>
+
+    <!-- Planos Globais -->
+    <div id="planoGlobal">
+      <div id="planosGlobaisView">
+        <!-- Lista de planos -->
+        <div id="globalPlanoList"></div>
+      </div>
+      <div id="planoDetalheView" class="hidden">
+        <button class="back-btn" onclick="backToPlanos()">← Voltar aos Planos</button>
+        <div id="planoDetalheContent"></div>
+      </div>
+    </div>
+
+    <!-- Plano Pessoal -->
+    <div id="planoPersonal" class="hidden">
+      <div class="card">
+        <h2>🗓 Criar Plano Pessoal</h2>
+        <div class="plan-form">
+          <div>
+            <label class="flbl">Período (dias)</label>
+            <input type="number" id="planDias" placeholder="Ex: 90" min="1">
+          </div>
+          <div>
+            <label class="flbl">Livros</label>
+            <div class="livros-grid" id="livrosChk"></div>
+          </div>
+          <div class="plan-btns">
+            <button class="btn-primary" onclick="gerarPlano()">Gerar Plano</button>
+            <button class="btn-ghost" id="selAllBtn" onclick="toggleSelAll()">Selecionar todos</button>
+          </div>
+        </div>
+        <div id="planResult"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div id="stats" class="section">
+    <div class="card">
+      <h2>📊 Minhas Estatísticas</h2>
+      <div class="stats-grid" id="statsGrid"></div>
+      <div style="margin-top:20px">
+        <div class="test-title">Progresso por Testamento</div>
+        <div style="margin-top:12px">
+          <div class="prog-row"><span>Antigo Testamento</span><span id="atPct">0%</span></div>
+          <div class="prog-bg" style="margin-bottom:12px"><div class="prog-fill" id="atBar" style="width:0%"></div></div>
+          <div class="prog-row"><span>Novo Testamento</span><span id="ntPct">0%</span></div>
+          <div class="prog-bg"><div class="prog-fill" id="ntBar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div style="margin-top:20px">
+        <div class="test-title">Livros mais lidos</div>
+        <div id="topLivros" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- FABs -->
+<div class="fabs">
+  <button class="fab" id="fabTheme" title="Tema" onclick="toggleTheme()">🌙</button>
+  <button class="fab" title="Notificações" onclick="askNotif()">🔔</button>
+  <button class="fab" id="fabAdmin" title="Admin" onclick="location.href='admin.html'" style="display:none">⚙️</button>
+</div>
+
+<div id="toast"></div>
+
+<!-- ══ VIDEO PLAYER MODAL ══ -->
+<div class="overlay" id="videoModal" onclick="closeModal('videoModal',event)">
+  <div class="modal" style="max-width:700px">
+    <button class="mclose" onclick="closeVideoModal()">×</button>
+    <h2 id="videoModalTitle">—</h2>
+    <div id="videoPlayerWrap"></div>
+    <p id="videoModalDesc" style="color:var(--muted);font-size:.86rem;line-height:1.6"></p>
+    <p id="videoModalDate" style="color:var(--muted);font-size:.76rem;margin-top:6px"></p>
+  </div>
+</div>
+
+<!-- ══ PROFILE MODAL ══ -->
+<div class="overlay" id="profModal" onclick="closeModal('profModal',event)">
+  <div class="modal">
+    <button class="mclose" onclick="closeModalById('profModal')">×</button>
+    <h2>👤 Meu Perfil</h2>
+    <div class="prof-avatar" id="profAv" onclick="document.getElementById('avInput').click()">
+      <div id="profAvInner"></div>
+      <div class="av-overlay">📷</div>
+    </div>
+    <input type="file" id="avInput" accept="image/*" style="display:none" onchange="uploadAvatar(event)">
+    <div class="sec-lbl">Informações</div>
+    <input class="minput" type="text" id="profName" placeholder="Seu nome">
+    <input class="minput" type="email" id="profEmail" placeholder="E-mail" disabled style="opacity:.55">
+    <button class="btn-primary" style="width:100%;margin-bottom:8px" onclick="saveProfile()">💾 Salvar perfil</button>
+    <div class="sec-lbl">Alterar Senha</div>
+    <input class="minput" type="password" id="pwdOld" placeholder="Senha atual">
+    <input class="minput" type="password" id="pwdNew" placeholder="Nova senha (mín. 6 caracteres)">
+    <button class="btn-ghost" style="width:100%;margin-bottom:8px" onclick="changePassword()">🔒 Alterar senha</button>
+    <div class="sec-lbl">Dados</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+      <button class="btn-ghost btn-sm" onclick="exportData()">📤 Exportar</button>
+      <button class="btn-ghost btn-sm" onclick="document.getElementById('impInput').click()">📥 Importar</button>
+      <input type="file" id="impInput" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+    <div class="sec-lbl">Conta</div>
+    <button class="btn-danger" onclick="logout()">🚪 Sair da conta</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyD5uliRMWDoa04qQtz_0QANACd6AvE35gA",
+  authDomain: "advb-9b098.firebaseapp.com",
+  projectId: "advb-9b098",
+  storageBucket: "advb-9b098.firebasestorage.app",
+  messagingSenderId: "461526610041",
+  appId: "1:461526610041:web:6b6b456b2c60cc4c3e64a8"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+const SESSION_KEY='igrejaSession';
+function getSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY))}catch{return null}}
+function setSession(u){const s={id:u.id,name:u.name,email:u.email,role:u.role,avatar:u.avatar||null};localStorage.setItem(SESSION_KEY,JSON.stringify(s));return s}
+function hashPwd(p){let h=0;for(let i=0;i<p.length;i++){h=((h<<5)-h)+p.charCodeAt(i);h=h&h}return'h_'+Math.abs(h).toString(36)+'_'+p.length}
+const session=getSession();
+if(!session) location.href='login.html';
+function isAdmin(){const s=getSession();return s&&s.role==='admin'}
+async function getCurrentUser(){const s=getSession();if(!s)return null;const d=await db.collection('users').doc(s.id).get();return d.exists?d.data():null}
+async function updateUser(id,data){await db.collection('users').doc(id).update(data);const s=getSession();if(s&&s.id===id){const u=await db.collection('users').doc(id).get();if(u.exists)setSession(u.data())}}
+function logout(){auth.signOut().catch(()=>{});localStorage.removeItem(SESSION_KEY);location.href='login.html'}
+
+// ── Progress ──────────────────────────────────────────────────
+const uid=()=>getSession()?.id||'anon';
+const PROG_KEY=()=>'prog_'+uid();
+function getProgress(){try{return JSON.parse(localStorage.getItem(PROG_KEY())||'{}')}catch{return{}}}
+function saveProgress(p){
+  localStorage.setItem(PROG_KEY(),JSON.stringify(p));
+  // Salvar no Firebase também (debounce para não sobrecarregar)
+  clearTimeout(window._saveProgTimer);
+  window._saveProgTimer=setTimeout(()=>{
+    db.collection('users').doc(uid()).update({readProgress:p}).catch(()=>{});
+  },1500);
+}
+function isRead(livro,cap){return getProgress()[livro+cap]===true}
+const AT={"Gênesis":50,"Êxodo":40,"Levítico":27,"Números":36,"Deuteronômio":34,"Josué":24,"Juízes":21,"Rute":4,"1 Samuel":31,"2 Samuel":24,"1 Reis":22,"2 Reis":25,"1 Crônicas":29,"2 Crônicas":36,"Esdras":10,"Neemias":13,"Ester":10,"Jó":42,"Salmos":150,"Provérbios":31,"Eclesiastes":12,"Cantares":8,"Isaías":66,"Jeremias":52,"Lamentações":5,"Ezequiel":48,"Daniel":12,"Oséias":14,"Joel":3,"Amós":9,"Obadias":1,"Jonas":4,"Miquéias":7,"Naum":3,"Habacuque":3,"Sofonias":3,"Ageu":2,"Zacarias":14,"Malaquias":4};
+const NT={"Mateus":28,"Marcos":16,"Lucas":24,"João":21,"Atos":28,"Romanos":16,"1 Coríntios":16,"2 Coríntios":13,"Gálatas":6,"Efésios":6,"Filipenses":4,"Colossenses":4,"1 Tessalonicenses":5,"2 Tessalonicenses":3,"1 Timóteo":6,"2 Timóteo":4,"Tito":3,"Filemom":1,"Hebreus":13,"Tiago":5,"1 Pedro":5,"2 Pedro":3,"1 João":5,"2 João":1,"3 João":1,"Judas":1,"Apocalipse":22};
+const LIVROS={...AT,...NT};
+const API={"Gênesis":"genesis","Êxodo":"exodus","Levítico":"leviticus","Números":"numbers","Deuteronômio":"deuteronomy","Josué":"joshua","Juízes":"judges","Rute":"ruth","1 Samuel":"1 samuel","2 Samuel":"2 samuel","1 Reis":"1 kings","2 Reis":"2 kings","1 Crônicas":"1 chronicles","2 Crônicas":"2 chronicles","Esdras":"ezra","Neemias":"nehemiah","Ester":"esther","Jó":"job","Salmos":"psalms","Provérbios":"proverbs","Eclesiastes":"ecclesiastes","Cantares":"song of solomon","Isaías":"isaiah","Jeremias":"jeremiah","Lamentações":"lamentations","Ezequiel":"ezekiel","Daniel":"daniel","Oséias":"hosea","Joel":"joel","Amós":"amos","Obadias":"obadiah","Jonas":"jonah","Miquéias":"micah","Naum":"nahum","Habacuque":"habakkuk","Sofonias":"zephaniah","Ageu":"haggai","Zacarias":"zechariah","Malaquias":"malachi","Mateus":"matthew","Marcos":"mark","Lucas":"luke","João":"john","Atos":"acts","Romanos":"romans","1 Coríntios":"1 corinthians","2 Coríntios":"2 corinthians","Gálatas":"galatians","Efésios":"ephesians","Filipenses":"philippians","Colossenses":"colossians","1 Tessalonicenses":"1 thessalonians","2 Tessalonicenses":"2 thessalonians","1 Timóteo":"1 timothy","2 Timóteo":"2 timothy","Tito":"titus","Filemom":"philemon","Hebreus":"hebrews","Tiago":"james","1 Pedro":"1 peter","2 Pedro":"2 peter","1 João":"1 john","2 João":"2 john","3 João":"3 john","Judas":"jude","Apocalipse":"revelation"};
+const VOD=[{t:"Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.",r:"João 3:16"},{t:"O Senhor é o meu pastor, nada me faltará.",r:"Salmos 23:1"},{t:"Tudo posso naquele que me fortalece.",r:"Filipenses 4:13"},{t:"Confia no Senhor de todo o teu coração e não te estribes no teu próprio entendimento.",r:"Provérbios 3:5"},{t:"Não te deixes vencer pelo mal, mas vence o mal com o bem.",r:"Romanos 12:21"},{t:"Sede fortes e corajosos. Não temais nem vos assusteis, porque o Senhor, vosso Deus, estará convosco.",r:"Josué 1:9"},{t:"E conhecereis a verdade, e a verdade vos libertará.",r:"João 8:32"},{t:"Buscai primeiro o reino de Deus e a sua justiça, e todas estas coisas vos serão acrescentadas.",r:"Mateus 6:33"},{t:"O amor é paciente, o amor é bondoso. O amor não inveja, não se vangloria, não se orgulha.",r:"1 Coríntios 13:4"},{t:"Lâmpada para os meus pés é a tua palavra e luz para o meu caminho.",r:"Salmos 119:105"}];
+
+function parsePlanReading(parte){
+  // Estratégia: testar todos os livros conhecidos para ver se a parte começa com ele,
+  // assim funciona corretamente com livros de nome composto como "1 Samuel", "1 Reis" etc.
+  parte=parte.trim();
+  const livrosConhecidos=Object.keys(LIVROS);
+  for(let i=0;i<livrosConhecidos.length;i++){
+    const l=livrosConhecidos[i];
+    if(parte.startsWith(l)){
+      const resto=parte.slice(l.length).trim();
+      // Espera "N" ou "N-M"
+      const m=resto.match(/^(\d+)(?:-(\d+))?$/);
+      if(m){
+        return{livro:l,capIni:parseInt(m[1]),capFim:m[2]?parseInt(m[2]):parseInt(m[1])};
+      }
+    }
+  }
+  return null;
+}
+
+function syncCapWithPlan(schedule,livro,cap,getProg,saveProg,planLabel){
+  const prog=getProg();
+  let marcou=false;
+  schedule.forEach((s,i)=>{
+    if(prog[i+1])return;
+    const partes=(s.reading||'').split(',').map(x=>x.trim());
+    partes.forEach(parte=>{
+      const info=parsePlanReading(parte);
+      if(info&&info.livro===livro&&cap>=info.capIni&&cap<=info.capFim){
+        prog[i+1]=true;
+        saveProg(prog);
+        marcou=true;
+        toast('📖 '+planLabel+' — Dia '+(i+1)+' marcado! ✔');
+      }
+    });
+  });
+  return marcou;
+}
+
+function setRead(livro,cap,val){
+  const p=getProgress();
+  if(val)p[livro+cap]=true;else delete p[livro+cap];
+  saveProgress(p);
+  updateStreak();
+  if(!val)return; // só sincroniza ao marcar como lido
+
+  // ── Plano pessoal ──
+  if(!curPlan){const sp=localStorage.getItem(PLAN_KEY());if(sp)try{curPlan=JSON.parse(sp)}catch{}}
+  if(curPlan){
+    const marcou=syncCapWithPlan(
+      curPlan.schedule,livro,cap,
+      getPlanProgress,
+      savePlanProgress,
+      'Plano pessoal'
+    );
+    if(marcou)renderPlanResult();
+  }
+
+  // ── Planos globais ──
+  getGlobalPlanos().then(plans=>{
+    plans.forEach(plan=>{
+      if(!plan.schedule)return;
+      syncCapWithPlan(
+        plan.schedule,livro,cap,
+        ()=>getGlobalPlanProgress(plan.id),
+        (prog)=>saveGlobalPlanProgress(plan.id,prog),
+        plan.name
+      );
+    });
+  }).catch(()=>{});
+}
+async function updateStreak(){const hoje=new Date().toDateString();const ontem=new Date(Date.now()-86400000).toDateString();const u=await getCurrentUser();if(!u)return;if(u.lastReadDate!==hoje){const streak=u.lastReadDate===ontem?(u.streak||0)+1:1;await updateUser(uid(),{streak,lastReadDate:hoje})}}
+async function setLastRead(livro,cap){await updateUser(uid(),{lastBook:livro,lastChapter:cap})}
+
+// ═══════════════════════════════════════════════════════════
+//  BIBLE DATA
+// ═══════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════
+//  BACKGROUND
+// ═══════════════════════════════════════════════════════════
+function applyBgConfig(cfg,layerId,overlayId){
+  try{
+    const layer=document.getElementById(layerId);
+    const overlay=document.getElementById(overlayId);
+    if(!layer)return;
+    if(cfg.type==='color'){layer.style.background=cfg.color||'transparent';layer.style.backgroundImage='none';if(layerId==='bgLayer')document.body.style.background=cfg.color||'var(--dark)'}
+    else if(cfg.type==='gradient'){layer.style.background=cfg.gradient||'transparent';layer.style.backgroundImage='none'}
+    else if(cfg.type==='image'&&cfg.image){layer.style.backgroundImage=`url(${cfg.image})`;layer.style.backgroundSize='cover';layer.style.backgroundPosition='center';layer.style.opacity=cfg.opacity!=null?cfg.opacity:1}
+    if(overlay&&cfg.overlayIntensity!=null)overlay.style.opacity=cfg.overlayIntensity;
+  }catch(e){}
+}
+async function applyMainBg(){
+  try{
+    const d=await db.collection('config').doc('bg_main').get();
+    const cfg=d.exists?d.data():JSON.parse(localStorage.getItem('advb_bg_main')||'{}');
+    if(d.exists)localStorage.setItem('advb_bg_main',JSON.stringify(cfg));
+    applyBgConfig(cfg,'bgLayer','bgOverlay');
+  }catch(e){
+    try{const cfg=JSON.parse(localStorage.getItem('advb_bg_main')||'{}');applyBgConfig(cfg,'bgLayer','bgOverlay')}catch{}
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════════
+let _toastTimer;
+function toast(msg,ms=2800){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(_toastTimer);_toastTimer=setTimeout(()=>t.classList.remove('show'),ms);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NAV
+// ═══════════════════════════════════════════════════════════
+function showSec(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  if(id==='stats')renderStats();
+  if(id==='midias')renderVideoCategories();
+  if(id==='plano')renderGlobalPlanos();
+  if(id==='avisos')renderAvisos();
+}
+
+function showPlanoTab(tab,btn){
+  document.querySelectorAll('.sub-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(tab==='global'){document.getElementById('planoGlobal').classList.remove('hidden');document.getElementById('planoPersonal').classList.add('hidden');renderGlobalPlanos()}
+  else{document.getElementById('planoGlobal').classList.add('hidden');document.getElementById('planoPersonal').classList.remove('hidden');renderPlanResult()}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  THEME & INIT
+// ═══════════════════════════════════════════════════════════
+function initTheme(){
+  if(localStorage.getItem('tema')==='light'){document.body.classList.add('light');document.getElementById('fabTheme').textContent='☀️'}
+}
+function toggleTheme(){
+  document.body.classList.toggle('light');
+  const l=document.body.classList.contains('light');
+  localStorage.setItem('tema',l?'light':'dark');
+  document.getElementById('fabTheme').textContent=l?'☀️':'🌙';
+}
+
+async function initBanner(){
+  const d=await db.collection('config').doc('igreja').get();
+  const data=d.exists?d.data():{};
+  const nome=data.nome||localStorage.getItem('igrejaHome');
+  if(nome){document.getElementById('churchTitle').textContent='✦ '+nome;localStorage.setItem('igrejaHome',nome)}
+  const b=data.banner||localStorage.getItem('igrejaBanner');
+  if(b){document.getElementById('bannerImg').src=b;document.getElementById('bannerImg').style.display='block';document.getElementById('headerText').style.display='none'}
+}
+
+async function initUserUI(){
+  const s=getSession();if(!s)return;
+  const u=await getCurrentUser();
+  const av=document.getElementById('navAvatar');
+  if(s.avatar)av.innerHTML=`<img src="${s.avatar}">`;
+  else av.textContent=(s.name||'?').split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+  document.getElementById('navName').textContent=s.name;
+  document.getElementById('navRole').textContent=s.role==='admin'?'Administrador':'Membro';
+  if(isAdmin())document.getElementById('fabAdmin').style.display='flex';
+  if(u&&u.streak>0){document.getElementById('navStreak').style.display='flex';document.getElementById('streakNum').textContent=u.streak}
+  // Continue banner
+  if(u&&u.lastBook&&u.lastChapter){
+    const b=document.getElementById('contBanner');const btn=document.getElementById('contBtn');
+    b.style.display='block';btn.textContent=`${u.lastBook} ${u.lastChapter}`;
+    btn.onclick=()=>{openLivro(u.lastBook);setTimeout(()=>openCap(u.lastBook,u.lastChapter),50)}
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CULTOS / SCHEDULE
+// ═══════════════════════════════════════════════════════════
+async function getCultos(){try{const d=await db.collection('config').doc('cultos').get();return d.exists?d.data().list||[]:[]}catch{return[]}}
+async function renderSchedule(){
+  const c=await getCultos();const g=document.getElementById('schedGrid');
+  if(!c.length){g.innerHTML='<p style="color:var(--muted);font-size:.86rem">Nenhum culto cadastrado ainda.</p>';return}
+  g.innerHTML=c.map(cu=>`
+    <div class="sched-item">
+      ${cu.foto?`<img class="sched-photo" src="${cu.foto}" alt="">`:`<div class="sched-ph">⛪</div>`}
+      <div class="sched-info">
+        <div class="sched-day">${cu.dia||'—'}</div>
+        <div class="sched-name">${cu.nome||'Culto'}</div>
+        <div class="sched-time">${cu.horario||''}</div>
+        ${cu.ytAtivo&&cu.ytUrl?`<a class="yt-btn" href="${cu.ytUrl}" target="_blank"><svg viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>YouTube</a>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  VOD
+// ═══════════════════════════════════════════════════════════
+function renderVOD(){
+  const d=new Date();const idx=(d.getDate()+d.getMonth()*31)%VOD.length;
+  document.getElementById('vodTxt').textContent=VOD[idx].t;
+  document.getElementById('vodRef').textContent=VOD[idx].r;
+}
+function shareVod(){const v=VOD[(new Date().getDate()+new Date().getMonth()*31)%VOD.length];if(navigator.share)navigator.share({text:`"${v.t}" — ${v.r}`});else{navigator.clipboard?.writeText(`"${v.t}" — ${v.r}`);toast('📋 Copiado!')}}
+
+// ═══════════════════════════════════════════════════════════
+//  VIDEOS / MÍDIAS
+// ═══════════════════════════════════════════════════════════
+async function getVideoData(){try{const d=await db.collection('config').doc('videos').get();return d.exists?d.data():{}}catch{return{}}}
+// Default: {categories:[{id,name}], videos:[{id,catId,title,url,desc,date}]}
+
+async function renderVideoCategories(){
+  const data=await getVideoData();
+  const cats=data.categories||[];
+  const videos=data.videos||[];
+  const el=document.getElementById('vidCatList');
+  if(!cats.length){el.innerHTML='<p style="color:var(--muted);font-size:.86rem">Nenhuma categoria de vídeo cadastrada ainda. O administrador pode adicionar pelo painel.</p>';return}
+  el.innerHTML=cats.map(cat=>{
+    const count=videos.filter(v=>v.catId===cat.id).length;
+    return`<div class="vid-cat-item" onclick="openVidCategory('${cat.id}')">
+      <div>
+        <div class="vid-cat-name">${cat.name}</div>
+        <div class="vid-cat-count">${count} vídeo${count!==1?'s':''}</div>
+      </div>
+      <div class="vid-cat-arrow">▶</div>
+    </div>`}).join('');
+}
+
+async function openVidCategory(catId){
+  const data=await getVideoData();
+  const cat=(data.categories||[]).find(c=>c.id===catId);
+  const videos=(data.videos||[]).filter(v=>v.catId===catId);
+  document.getElementById('vidCatView').classList.add('hidden');
+  document.getElementById('vidListView').classList.remove('hidden');
+  document.getElementById('vidListTitle').textContent=cat?cat.name:'Vídeos';
+  const el=document.getElementById('vidListContent');
+  if(!videos.length){el.innerHTML='<p style="color:var(--muted);font-size:.86rem">Nenhum vídeo nesta categoria ainda.</p>';return}
+  el.innerHTML=videos.map(v=>{
+    const ytId=extractYtId(v.url);
+    const thumb=ytId?`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`:'';
+    return`<a class="vid-item" href="${v.url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:block">
+      <div class="vid-thumb">
+        ${thumb?`<img src="${thumb}" alt="" loading="lazy">`:'<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(201,168,76,.08);font-size:3rem;">🎬</div>'}
+        <div class="vid-play-btn"><div class="vid-play-icon">▶</div></div>
+      </div>
+      <div class="vid-info">
+        <div class="vid-title">${v.title}</div>
+        ${v.desc?`<div class="vid-desc">${v.desc}</div>`:''}
+        ${v.date?`<div class="vid-date">📅 ${v.date}</div>`:''}
+      </div>
+    </a>`}).join('');
+}
+
+function showVidCats(){
+  document.getElementById('vidCatView').classList.remove('hidden');
+  document.getElementById('vidListView').classList.add('hidden');
+}
+
+function extractYtId(url){
+  if(!url)return null;
+  const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/);
+  return m?m[1]:null;
+}
+
+async function openVideo(vidId){
+  const data=await getVideoData();
+  const v=(data.videos||[]).find(x=>x.id===vidId);
+  if(!v)return;
+  window.location.href=v.url;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PLANOS GLOBAIS
+// ═══════════════════════════════════════════════════════════
+
+
+function getDefaultPlanos(){
+  const todosLivros=Object.keys(LIVROS);
+  const ntLivros=Object.keys(NT);
+  return[
+    {id:'plan_default_1',name:'Bíblia em 1 Ano',days:365,livros:todosLivros,schedule:gerarPlanoDivision(todosLivros,365),visible:true,builtin:true},
+    {id:'plan_default_2',name:'Novo Testamento em 90 Dias',days:90,livros:ntLivros,schedule:gerarPlanoDivision(ntLivros,90),visible:true,builtin:true}
+  ];
+}
+
+async function getGlobalPlanos(){
+  try{
+    const d=await db.collection('config').doc('planos').get();
+    let stored=d.exists?d.data().list||[]:[];
+    const defaults=getDefaultPlanos();
+    let changed=false;
+    ['plan_default_1','plan_default_2'].forEach(id=>{
+      if(!stored.find(p=>p.id===id)){
+        const def=defaults.find(d=>d.id===id);
+        if(def){stored.unshift(def);changed=true}
+      }
+    });
+    if(!d.exists||changed) await saveGlobalPlanos(stored);
+    // Garantir que planos default sempre têm schedule gerado localmente
+    stored=stored.map(p=>{
+      if((p.id==='plan_default_1'||p.id==='plan_default_2')&&(!p.schedule||!p.schedule.length)){
+        const def=defaults.find(d=>d.id===p.id);
+        if(def)return{...p,schedule:def.schedule,livros:def.livros};
+      }
+      return p;
+    });
+    return stored;
+  }catch{return getDefaultPlanos()}
+}
+async function saveGlobalPlanos(plans){await db.collection('config').doc('planos').set({list:plans})}
+
+function gerarPlanoDivision(livros,dias){
+  // Build list of all chapters: [{livro,cap}]
+  let caps=[];
+  livros.forEach(l=>{for(let c=1;c<=LIVROS[l];c++)caps.push({livro:l,cap:c})});
+  const schedule=[];
+  const perDay=caps.length/dias;
+  for(let d=0;d<dias;d++){
+    const start=Math.round(d*perDay);
+    const end=Math.round((d+1)*perDay);
+    const slice=caps.slice(start,end);
+    if(!slice.length)continue;
+    // Group by book
+    const groups={};
+    slice.forEach(({livro,cap})=>{if(!groups[livro])groups[livro]=[];groups[livro].push(cap)});
+    const lbl=Object.entries(groups).map(([l,cs])=>{
+      if(cs.length===1)return`${l} ${cs[0]}`;
+      return`${l} ${cs[0]}-${cs[cs.length-1]}`;
+    }).join(', ');
+    schedule.push({day:d+1,reading:lbl});
+  }
+  return schedule;
+}
+
+async function renderGlobalPlanos(){
+  const plans=(await getGlobalPlanos()).filter(p=>p.visible!==false);
+  const el=document.getElementById('globalPlanoList');
+  if(!plans.length){el.innerHTML='<div class="card"><p style="color:var(--muted);font-size:.86rem;text-align:center;padding:20px">Nenhum plano disponível no momento.</p></div>';return}
+  el.innerHTML=plans.map(p=>`
+    <div class="plano-card" onclick="openPlano('${p.id}')">
+      <div class="plano-card-header">
+        <div class="plano-card-name">${p.name}</div>
+        ${p.builtin?'<span class="plano-card-badge">Oficial</span>':'<span class="plano-card-badge" style="background:var(--dark3);color:var(--gold);border:1px solid var(--gold)">Igreja</span>'}
+      </div>
+      <div class="plano-card-meta">
+        📅 ${p.days} dias &nbsp;·&nbsp; 📖 ${(p.livros||[]).length} livros
+      </div>
+    </div>`).join('');
+}
+
+function getGlobalPlanProgress(planId){try{return JSON.parse(localStorage.getItem('gplan_prog_'+planId+'_'+uid())||'{}')}catch{return{}}}
+function saveGlobalPlanProgress(planId,p){
+  localStorage.setItem('gplan_prog_'+planId+'_'+uid(),JSON.stringify(p));
+  db.collection('users').doc(uid()).update({['globalPlanProgress_'+planId]:p}).catch(()=>{});
+}
+function toggleGlobalPlanDay(planId,day){
+  const p=getGlobalPlanProgress(planId);
+  if(p[day])delete p[day];else p[day]=true;
+  saveGlobalPlanProgress(planId,p);
+  renderGlobalPlanDetail(planId);
+}
+window.toggleGlobalPlanDay=toggleGlobalPlanDay;
+
+async function renderGlobalPlanDetail(planId){
+  const plans=await getGlobalPlanos();
+  const plan=plans.find(p=>p.id===planId);
+  if(!plan)return;
+  const prog=getGlobalPlanProgress(planId);
+  const totalDone=Object.keys(prog).length;
+  const total=(plan.schedule||[]).length;
+  const pct=total>0?Math.floor(totalDone/total*100):0;
+  const el=document.getElementById('planoDetalheContent');
+  el.innerHTML=`
+    <div class="card" style="margin-bottom:16px">
+      <h2>📖 ${plan.name}</h2>
+      <div class="result-stats">
+        <div class="stat-box"><div class="stat-v">${plan.days}</div><div class="stat-l">Dias</div></div>
+        <div class="stat-box"><div class="stat-v">${(plan.livros||[]).length}</div><div class="stat-l">Livros</div></div>
+        <div class="stat-box"><div class="stat-v">${totalDone}/${total}</div><div class="stat-l">Concluídos</div></div>
+      </div>
+      <div class="prog-row"><span>Progresso geral</span><span>${pct}%</span></div>
+      <div class="prog-bg" style="margin-bottom:16px"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <div style="margin-bottom:14px">
+        <div class="test-title">Livros Incluídos</div>
+        <div style="font-size:.82rem;color:var(--muted);line-height:1.8;margin-top:8px">${(plan.livros||[]).join(' · ')}</div>
+      </div>
+      <div class="test-title">Cronograma — clique para marcar ✔</div>
+      <div class="plano-day-list" style="margin-top:10px">
+        ${(plan.schedule||[]).slice(0,plan.days).map((s,i)=>{
+          const done=!!prog[i+1];
+          return`<div class="dia-item ${done?'done':''}" onclick="toggleGlobalPlanDay('${plan.id}',${i+1})" style="cursor:pointer">
+            <div class="dia-n">Dia ${s.day}</div>
+            <div class="dia-c">${s.reading}</div>
+            <span class="dia-chk">${done?'✔':'○'}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+async function openPlano(id){
+  const plans=await getGlobalPlanos();
+  const plan=plans.find(p=>p.id===id);
+  if(!plan)return;
+  document.getElementById('planosGlobaisView').classList.add('hidden');
+  document.getElementById('planoDetalheView').classList.remove('hidden');
+  renderGlobalPlanDetail(id);
+}
+
+function backToPlanos(){
+  document.getElementById('planosGlobaisView').classList.remove('hidden');
+  document.getElementById('planoDetalheView').classList.add('hidden');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PLANO PESSOAL
+// ═══════════════════════════════════════════════════════════
+const PLAN_KEY=()=>'plan_'+uid();
+let curPlan=null;
+let selAll=false;
+
+function renderLivrosChk(){
+  const g=document.getElementById('livrosChk');
+  g.innerHTML=Object.keys(LIVROS).map(l=>`
+    <label class="lchk"><input type="checkbox" value="${l}" class="livroChk"> ${l}</label>`).join('');
+}
+
+function toggleSelAll(){
+  selAll=!selAll;
+  document.querySelectorAll('.livroChk').forEach(c=>c.checked=selAll);
+  document.getElementById('selAllBtn').textContent=selAll?'Desmarcar todos':'Selecionar todos';
+}
+
+function gerarPlano(){
+  const dias=parseInt(document.getElementById('planDias').value);
+  const livros=[...document.querySelectorAll('.livroChk:checked')].map(c=>c.value);
+  if(!dias||dias<1||dias>3650){toast('⚠️ Período inválido (1–3650 dias)');return}
+  if(!livros.length){toast('⚠️ Selecione ao menos um livro');return}
+  let totalCaps=livros.reduce((s,l)=>s+LIVROS[l],0);
+  if(dias>totalCaps){toast(`⚠️ Período maior que os capítulos (${totalCaps} caps)`);return}
+  curPlan={livros,dias,schedule:gerarPlanoDivision(livros,dias),created:Date.now()};
+  localStorage.setItem(PLAN_KEY(),JSON.stringify(curPlan));
+  // Limpar progresso anterior e salvar novo plano no Firebase
+  localStorage.removeItem('plan_prog_'+uid());
+  db.collection('users').doc(uid()).update({personalPlan:curPlan,planProgress:{}}).catch(()=>{});
+  renderPlanResult();
+  toast('✅ Plano criado e salvo!');
+}
+
+function getPlanProgress(){try{return JSON.parse(localStorage.getItem('plan_prog_'+uid())||'{}')}catch{return{}}}
+function savePlanProgress(p){
+  localStorage.setItem('plan_prog_'+uid(),JSON.stringify(p));
+  db.collection('users').doc(uid()).update({planProgress:p}).catch(()=>{});
+}
+function togglePlanDay(day){
+  const p=getPlanProgress();
+  if(p[day])delete p[day];else p[day]=true;
+  savePlanProgress(p);
+  renderPlanResult();
+}
+
+function renderPlanResult(){
+  if(!curPlan)return;
+  const el=document.getElementById('planResult');
+  const prog=getPlanProgress();
+  const totalDone=Object.keys(prog).length;
+  const pct=Math.floor(totalDone/curPlan.schedule.length*100);
+  let html=`<div class="result-card">
+    <div class="result-stats">
+      <div class="stat-box"><div class="stat-v">${curPlan.dias}</div><div class="stat-l">Dias</div></div>
+      <div class="stat-box"><div class="stat-v">${curPlan.livros.length}</div><div class="stat-l">Livros</div></div>
+      <div class="stat-box"><div class="stat-v">${totalDone}/${curPlan.schedule.length}</div><div class="stat-l">Concluídos</div></div>
+    </div>
+    <div class="prog-row"><span>Progresso geral</span><span>${pct}%</span></div>
+    <div class="prog-bg" style="margin-bottom:16px"><div class="prog-fill" style="width:${pct}%"></div></div>
+    <div class="plano-days"><h4>Cronograma — clique para marcar ✔</h4>
+    ${curPlan.schedule.slice(0,curPlan.dias).map((s,i)=>{
+      const done=!!prog[i+1];
+      return`<div class="dia-item ${done?'done':''}" onclick="togglePlanDay(${i+1})" style="cursor:pointer">
+        <div class="dia-n">Dia ${s.day}</div>
+        <div class="dia-c">${s.reading}</div>
+        <span class="dia-chk">${done?'✔':'○'}</span>
+      </div>`;
+    }).join('')}
+    </div></div>`;
+  el.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  BIBLE READER
+// ═══════════════════════════════════════════════════════════
+let curLivro=null,curCap=null;
+const capCache={};
+
+function renderLivros(){
+  function mkGrid(obj,el){
+    document.getElementById(el).innerHTML=Object.entries(obj).map(([l,tot])=>{
+      const lidos=Object.keys(getProgress()).filter(k=>k.startsWith(l)&&getProgress()[k]).length;
+      const pct=Math.floor(lidos/tot*100);
+      return`<button class="livro-btn" onclick="openLivro('${l}')">
+        ${lidos===tot&&tot>0?'<span class="dot"></span>':''}
+        ${l}<span class="badge-t">${lidos}/${tot}</span>
+        <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--gold);border-radius:2px;transition:width .6s"></div></div>
+      </button>`}).join('');
+  }
+  mkGrid(AT,'gridAT');mkGrid(NT,'gridNT');
+}
+
+function openLivro(livro){
+  curLivro=livro;curCap=null;
+  document.getElementById('vLivros').classList.add('hidden');
+  document.getElementById('vLeit').classList.add('hidden');
+  document.getElementById('vCaps').classList.remove('hidden');
+  const tot=LIVROS[livro];
+  const wrap=document.getElementById('livroProgWrap');
+  const lidos=Object.keys(getProgress()).filter(k=>k.startsWith(livro)&&getProgress()[k]).length;
+  wrap.innerHTML=`<div class="livro-header">${livro}</div>
+    <div class="prog-row"><span>${lidos} de ${tot} capítulos lidos</span><span>${Math.floor(lidos/tot*100)}%</span></div>
+    <div class="prog-bg"><div class="prog-fill" style="width:${Math.floor(lidos/tot*100)}%"></div></div>`;
+  document.getElementById('gridCaps').innerHTML=Array.from({length:tot},(_,i)=>{
+    const c=i+1;const lido=isRead(livro,c);
+    return`<button class="cap-btn ${lido?'lido':''}" onclick="openCap('${livro}',${c})">${c}</button>`}).join('');
+}
+
+function openCap(livro,cap){
+  curLivro=livro;curCap=cap;
+  document.getElementById('vCaps').classList.add('hidden');
+  document.getElementById('vLivros').classList.add('hidden');
+  document.getElementById('vLeit').classList.remove('hidden');
+  document.getElementById('leitTitle').textContent=`${livro} ${cap}`;
+  document.getElementById('checkLido').checked=isRead(livro,cap);
+  document.getElementById('checkLido').onchange=e=>setRead(livro,cap,e.target.checked);
+  document.getElementById('btnAnt').disabled=(cap===1&&Object.keys(LIVROS).indexOf(livro)===0);
+  document.getElementById('btnProx').disabled=(cap===LIVROS[livro]&&Object.keys(LIVROS).indexOf(livro)===Object.keys(LIVROS).length-1);
+  setLastRead(livro,cap);
+  loadCap(livro,cap);
+}
+
+async function loadCap(livro,cap){
+  const key=livro+cap;
+  if(capCache[key]){renderVerses(capCache[key]);return}
+  document.getElementById('leitContent').innerHTML='<div class="spinner-wrap"><div class="spinner"></div><p>Carregando...</p></div>';
+  document.getElementById('offBadge').style.display='none';
+  try{
+    const slug=API[livro];
+    const r=await fetch(`https://bible-api.com/${encodeURIComponent(slug)}+${cap}?translation=almeida`);
+    if(!r.ok)throw new Error('offline');
+    const d=await r.json();
+    const verses=d.verses||[];
+    capCache[key]=verses;
+    renderVerses(verses);
+  }catch{
+    document.getElementById('offBadge').style.display='block';
+    document.getElementById('leitContent').innerHTML='<p style="color:var(--muted);font-size:.86rem;padding:20px;text-align:center">Sem conexão. Tente novamente quando online.</p>';
+  }
+}
+
+function renderVerses(verses){
+  document.getElementById('leitContent').innerHTML=verses.map(v=>`<div class="verso"><b>${v.verse}</b>${v.text}</div>`).join('');
+}
+
+function navCap(dir){
+  const livros=Object.keys(LIVROS);const li=livros.indexOf(curLivro);
+  let nl=curLivro,nc=curCap+dir;
+  if(nc<1){if(li===0)return;nl=livros[li-1];nc=LIVROS[nl]}
+  else if(nc>LIVROS[curLivro]){if(li===livros.length-1)return;nl=livros[li+1];nc=1}
+  openCap(nl,nc);
+}
+
+function goLivros(){document.getElementById('vCaps').classList.add('hidden');document.getElementById('vLeit').classList.add('hidden');document.getElementById('vLivros').classList.remove('hidden');renderLivros()}
+function goCaps(){document.getElementById('vLeit').classList.add('hidden');document.getElementById('vCaps').classList.remove('hidden')}
+
+function shareCap(){const txt=`${curLivro} ${curCap} — Leia em nosso app!`;if(navigator.share)navigator.share({text:txt});else{navigator.clipboard?.writeText(txt);toast('📋 Copiado!')}}
+
+// ─── Bible Search ─────────────────────────────────────────
+function searchBible(q){
+  const res=document.getElementById('searchRes');
+  if(!q||q.length<3){res.style.display='none';return}
+  const ref=/^(.+?)\s+(\d+)(?::(\d+))?$/.exec(q.trim());
+  if(ref){
+    const livro=Object.keys(LIVROS).find(l=>l.toLowerCase().startsWith(ref[1].toLowerCase()));
+    if(livro){const c=parseInt(ref[2]);if(c&&c<=LIVROS[livro]){res.style.display='block';res.innerHTML=`<div class="sr-item" onclick="openCap('${livro}',${c})"><span class="sr-ref">${livro} ${c}</span>Abrir capítulo</div>`;return}}
+  }
+  res.style.display='none';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STATS
+// ═══════════════════════════════════════════════════════════
+function renderStats(){
+  const prog=getProgress();
+  const u=getCurrentUser();
+  const totalCaps=Object.values(LIVROS).reduce((a,b)=>a+b,0);
+  const lidos=Object.values(prog).filter(Boolean).length;
+  const atLidos=Object.keys(AT).reduce((s,l)=>s+Object.keys(prog).filter(k=>k.startsWith(l)&&prog[k]).length,0);
+  const ntLidos=Object.keys(NT).reduce((s,l)=>s+Object.keys(prog).filter(k=>k.startsWith(l)&&prog[k]).length,0);
+  const atTotal=Object.values(AT).reduce((a,b)=>a+b,0);
+  const ntTotal=Object.values(NT).reduce((a,b)=>a+b,0);
+  const livrosCompletos=Object.keys(LIVROS).filter(l=>{const t=LIVROS[l];return Object.keys(prog).filter(k=>k.startsWith(l)&&prog[k]).length===t}).length;
+  document.getElementById('statsGrid').innerHTML=[
+    {v:lidos,l:'Caps Lidos'},{v:livrosCompletos,l:'Livros Concluídos'},{v:u?.streak||0,l:'Dias Seguidos'},{v:Math.floor(lidos/totalCaps*100)+'%',l:'Bíblia'}
+  ].map(s=>`<div class="stat-mini"><span class="v">${s.v}</span><span class="l">${s.l}</span></div>`).join('');
+  const atPct=Math.floor(atLidos/atTotal*100);const ntPct=Math.floor(ntLidos/ntTotal*100);
+  document.getElementById('atPct').textContent=atPct+'%';document.getElementById('ntPct').textContent=ntPct+'%';
+  document.getElementById('atBar').style.width=atPct+'%';document.getElementById('ntBar').style.width=ntPct+'%';
+  const byBook={};Object.keys(LIVROS).forEach(l=>{byBook[l]=Object.keys(prog).filter(k=>k.startsWith(l)&&prog[k]).length});
+  const sorted=Object.entries(byBook).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  document.getElementById('topLivros').innerHTML=sorted.length
+    ?sorted.map(([l,n])=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:.86rem"><span style="color:var(--gold);min-width:130px">${l}</span><div class="prog-bg" style="flex:1;height:7px"><div class="prog-fill" style="width:${Math.floor(n/LIVROS[l]*100)}%"></div></div><span style="color:var(--muted);min-width:38px;text-align:right">${n}/${LIVROS[l]}</span></div>`).join('')
+    :'<span style="color:var(--muted);font-size:.86rem">Nenhum capítulo lido ainda.</span>';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PROFILE
+// ═══════════════════════════════════════════════════════════
+async function openProfile(){
+  const u=await getCurrentUser();if(!u)return;
+  document.getElementById('profName').value=u.name;
+  document.getElementById('profEmail').value=u.email;
+  const inn=document.getElementById('profAvInner');
+  if(u.avatar)inn.innerHTML=`<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover">`;
+  else inn.textContent=u.name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+  document.getElementById('profModal').classList.add('open');
+}
+function uploadAvatar(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=async ev=>{const b=ev.target.result;await updateUser(uid(),{avatar:b});document.getElementById('profAvInner').innerHTML=`<img src="${b}" style="width:100%;height:100%;object-fit:cover">`;document.getElementById('navAvatar').innerHTML=`<img src="${b}">`;toast('✅ Foto atualizada!')};
+  r.readAsDataURL(f);
+}
+async function saveProfile(){
+  const n=document.getElementById('profName').value.trim();
+  if(!n||n.length<2){toast('⚠️ Nome muito curto');return}
+  await updateUser(uid(),{name:n});document.getElementById('navName').textContent=n;toast('✅ Perfil salvo!');closeModalById('profModal');
+}
+async function changePassword(){
+  const old=document.getElementById('pwdOld').value;const nw=document.getElementById('pwdNew').value;
+  if(!old||!nw){toast('⚠️ Preencha os dois campos');return}
+  if(nw.length<6){toast('⚠️ Nova senha muito curta');return}
+  try{
+    const user=auth.currentUser;
+    if(!user){toast('❌ Faça login novamente');return}
+    const cred=firebase.auth.EmailAuthProvider.credential(user.email,old);
+    await user.reauthenticateWithCredential(cred);
+    await user.updatePassword(nw);
+    toast('✅ Senha alterada!');
+    document.getElementById('pwdOld').value='';document.getElementById('pwdNew').value='';
+  }catch(e){
+    if(e.code==='auth/wrong-password')toast('❌ Senha atual incorreta');
+    else toast('❌ Erro ao alterar senha');
+  }
+}
+function exportData(){
+  const u=getCurrentUser();if(!u)return;
+  const d={name:u.name,email:u.email,progress:getProgress(),streak:u.streak,plan:curPlan,exportedAt:new Date().toISOString()};
+  dl(JSON.stringify(d,null,2),`biblia-${u.name.toLowerCase().replace(/\s/g,'-')}.json`,'application/json');toast('📤 Dados exportados!');
+}
+function importData(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.progress)saveProgress(d.progress);toast('✅ Importado!');location.reload()}catch{toast('❌ Arquivo inválido')}};
+  r.readAsText(f);
+}
+function dl(content,filename,type){const b=new Blob([content],{type});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=filename;a.click();URL.revokeObjectURL(u)}
+
+// ═══════════════════════════════════════════════════════════
+//  AVISOS
+// ═══════════════════════════════════════════════════════════
+async function getAvisos(){try{const d=await db.collection('config').doc('avisos').get();return d.exists?d.data().list||[]:[]}catch{return[]}}
+
+async function renderAvisos(){
+  const avisos=(await getAvisos()).filter(a=>a.ativo!==false);
+  const el=document.getElementById('avisosContent');
+  if(!avisos.length){el.innerHTML='<p style="color:var(--muted);font-size:.86rem;text-align:center;padding:20px">Nenhum aviso no momento.</p>';return}
+  el.innerHTML=avisos.map(a=>`
+    <div class="aviso-card ${a.urgente?'urgente':''}">
+      ${a.imagem?`<img src="${a.imagem}" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px">`:''}
+      <div class="aviso-titulo">${a.titulo}</div>
+      <div class="aviso-texto">${a.texto}</div>
+      <div class="aviso-meta">
+        ${a.data?`<span class="aviso-data">📅 ${a.data}</span>`:''}
+        <span class="aviso-badge ${a.urgente?'urgente':'normal'}">${a.urgente?'⚠️ Urgente':'📌 Aviso'}</span>
+      </div>
+    </div>`).join('');
+}
+
+// Mostrar badge na nav se tiver avisos novos
+async function checkAvisosBadge(){
+  const avisos=(await getAvisos()).filter(a=>a.ativo!==false);
+  if(avisos.length){
+    const btn=document.querySelector('nav button[onclick*="avisos"]');
+    if(btn&&!btn.querySelector('.badge-count')){
+      const b=document.createElement('span');
+      b.className='badge-count';
+      b.style.cssText='background:var(--danger);color:#fff;border-radius:50px;font-size:.6rem;padding:1px 6px;margin-left:4px;font-weight:700';
+      b.textContent=avisos.length;
+      btn.appendChild(b);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MODALS
+// ═══════════════════════════════════════════════════════════
+function closeModal(id,e){if(e.target===document.getElementById(id))closeModalById(id)}
+function closeModalById(id){document.getElementById(id).classList.remove('open')}
+
+// ═══════════════════════════════════════════════════════════
+//  NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════
+async function askNotif(){
+  if(!('Notification'in window)){toast('⚠️ Navegador não suporta notificações',3000);return}
+  const p=await Notification.requestPermission();
+  if(p==='granted'){toast('🔔 Notificações ativadas!');scheduleNotif()}else toast('❌ Permissão negada');
+}
+function scheduleNotif(){
+  const now=new Date(),t=new Date();t.setHours(8,0,0,0);if(now>t)t.setDate(t.getDate()+1);
+  setTimeout(()=>{new Notification('📖 Hora de ler a Bíblia!',{body:'Mantenha seu hábito de leitura diária.'});scheduleNotif()},t-now);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+initTheme();applyMainBg();
+Promise.all([initBanner(),initUserUI(),renderSchedule()]).then(()=>{});
+renderLivros();renderVOD();renderLivrosChk();checkAvisosBadge();
+window.togglePlanDay=togglePlanDay;
+// fim
+// Restaurar plano — do localStorage primeiro (rápido)
+const sp=localStorage.getItem(PLAN_KEY());
+if(sp){try{curPlan=JSON.parse(sp)}catch{}}
+
+// Buscar TUDO do Firebase
+(async()=>{
+  try{
+    const ud=await db.collection('users').doc(uid()).get();
+    if(ud.exists){
+      const data=ud.data();
+      // Progresso de leitura — Firebase tem prioridade, mas faz merge com local
+      const localProg=getProgress();
+      if(data.readProgress&&Object.keys(data.readProgress).length>0){
+        // Merge: Firebase + local (Firebase sobrescreve em conflito)
+        const merged={...localProg,...data.readProgress};
+        localStorage.setItem(PROG_KEY(),JSON.stringify(merged));
+        // Se local tem capítulos a mais, sobe pro Firebase
+        if(Object.keys(localProg).some(k=>!data.readProgress[k])){
+          const fullMerge={...data.readProgress,...localProg};
+          db.collection('users').doc(uid()).update({readProgress:fullMerge}).catch(()=>{});
+          localStorage.setItem(PROG_KEY(),JSON.stringify(fullMerge));
+        }
+        renderLivros();
+      } else if(Object.keys(localProg).length>0){
+        // Não tem no Firebase ainda — sobe o local
+        db.collection('users').doc(uid()).update({readProgress:localProg}).catch(()=>{});
+      }
+      // Plano pessoal — SEMPRE sobrescreve o local com o Firebase
+      if(data.personalPlan&&data.personalPlan.schedule){
+        curPlan=data.personalPlan;
+        localStorage.setItem(PLAN_KEY(),JSON.stringify(curPlan));
+      }
+      // Progresso do plano
+      if(data.planProgress){
+        localStorage.setItem('plan_prog_'+uid(),JSON.stringify(data.planProgress));
+      }
+      // Progresso dos planos globais
+      ['plan_default_1','plan_default_2'].forEach(planId=>{
+        const key='globalPlanProgress_'+planId;
+        if(data[key]){localStorage.setItem('gplan_prog_'+planId+'_'+uid(),JSON.stringify(data[key]))}
+      });
+      // Re-renderizar o plano se ele foi carregado do Firebase
+      if(curPlan){renderPlanResult()}
+    }
+  }catch(e){console.log('Erro ao carregar dados do Firebase:',e)}
+})();
+</script>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js').then(r=>console.log('SW registrado')).catch(e=>console.log('SW erro:',e));
+  });
+}
+</script>
+</body>
+</html>
