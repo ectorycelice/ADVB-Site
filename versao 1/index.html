@@ -3,16 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- SEGURANÇA: Content Security Policy -->
-<meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com;
-  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-  font-src https://fonts.gstatic.com;
-  img-src 'self' data: https:;
-  connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://firestore.googleapis.com https://bible-api.com;
-  frame-src https://www.youtube.com https://accounts.google.com;
-">
 <title>ADVB — Igreja App</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#c9a84c">
@@ -45,8 +35,7 @@ h1,h2,h3{font-family:'Playfair Display',serif;line-height:1.2}
 /* Header */
 header{background:linear-gradient(160deg,var(--dark2),var(--dark3));border-bottom:1px solid var(--border);position:relative;overflow:hidden;z-index:2}
 header::after{content:'✦';position:absolute;font-size:320px;color:rgba(201,168,76,.03);top:-60px;left:50%;transform:translateX(-50%);pointer-events:none;font-family:'Playfair Display',serif}
-#bannerImg{width:100%;height:auto;max-height:420px;object-fit:contain;object-position:center;display:none;background:#000}
-@media(max-width:600px){#bannerImg{max-height:260px}}
+#bannerImg{width:100%;height:300px;object-fit:cover;object-position:center top;display:none}
 #headerText{padding:34px 20px 26px;text-align:center}
 #churchTitle{font-family:'Cinzel',serif;font-size:2.3rem;color:var(--gold);letter-spacing:5px;text-shadow:0 4px 30px rgba(201,168,76,.3)}
 header p{color:var(--muted);font-size:.75rem;letter-spacing:3px;text-transform:uppercase;margin-top:8px}
@@ -70,9 +59,25 @@ header p{color:var(--muted);font-size:.75rem;letter-spacing:3px;text-transform:u
 #contBtn:hover{background:var(--gold-l);transform:translateY(-1px)}
 
 /* Nav */
-nav{display:flex;justify-content:center;gap:6px;padding:16px 20px;flex-wrap:wrap;position:relative;z-index:2}
-nav button{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:9px 20px;border-radius:50px;cursor:pointer;font-family:'Lato',sans-serif;font-size:.83rem;letter-spacing:.5px;transition:all .25s;backdrop-filter:blur(8px)}
-nav button.active,nav button:hover{background:var(--gold);color:var(--dark);border-color:var(--gold);font-weight:700}
+/* Bottom Nav */
+nav{display:none}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--dark2);border-top:1px solid var(--border);display:flex;align-items:stretch;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.bn-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:10px 4px 14px;background:none;border:none;cursor:pointer;color:var(--muted);font-family:'Lato',sans-serif;font-size:.58rem;letter-spacing:.3px;transition:all .2s;text-transform:uppercase;min-height:60px}
+.bn-btn .bn-icon{font-size:1.3rem;line-height:1;transition:transform .2s}
+.bn-btn.active{color:var(--gold)}
+.bn-btn.active .bn-icon{transform:scale(1.15)}
+.bn-btn:hover{color:var(--gold)}
+/* Modal Mais */
+.mais-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:flex-end;backdrop-filter:blur(4px)}
+.mais-overlay.open{display:flex;animation:fadeIn .2s ease}
+.mais-sheet{width:100%;background:var(--dark2);border-radius:24px 24px 0 0;padding:16px 0 32px;border-top:1px solid var(--border)}
+.mais-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.mais-item{display:flex;align-items:center;gap:16px;padding:14px 24px;cursor:pointer;transition:background .2s;font-family:'Lato',sans-serif;font-size:.95rem;color:var(--text)}
+.mais-item:hover{background:var(--gold-dim)}
+.mais-item .mi-icon{font-size:1.3rem;width:28px;text-align:center}
+.mais-item.danger{color:var(--danger)}
+.mais-divider{height:1px;background:var(--border);margin:8px 0}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 /* Container & Sections */
 .container{max-width:900px;margin:auto;padding:0 20px 100px;position:relative;z-index:1}
@@ -101,9 +106,9 @@ nav button.active,nav button:hover{background:var(--gold);color:var(--dark);bord
 .sched-day{font-size:.68rem;text-transform:uppercase;letter-spacing:2px;color:var(--gold);font-weight:700;margin-bottom:4px}
 .sched-name{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--white);margin-bottom:3px}
 .sched-time{color:var(--muted);font-size:.82rem}
-.yt-btn{display:inline-flex;align-items:center;gap:7px;margin-top:11px;background:#ff0000;color:#fff;border:none;border-radius:50px;padding:7px 15px;font-size:.76rem;font-family:'Lato',sans-serif;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s}
-.yt-btn:hover{background:#cc0000;transform:translateY(-1px)}
-.yt-btn svg{width:15px;height:15px;fill:#fff;flex-shrink:0}
+.yt-btn{display:inline-flex;align-items:center;gap:9px;margin-top:14px;background:#ff0000;color:#fff;border:none;border-radius:50px;padding:13px 24px;font-size:1rem;font-family:'Lato',sans-serif;font-weight:900;cursor:pointer;text-decoration:none;transition:all .2s;letter-spacing:.5px;box-shadow:0 4px 20px rgba(255,0,0,.35);width:100%;justify-content:center}
+.yt-btn:hover{background:#cc0000;transform:translateY(-2px);box-shadow:0 8px 28px rgba(255,0,0,.45)}
+.yt-btn svg{width:20px;height:20px;fill:#fff;flex-shrink:0}
 
 /* Bible */
 .bsearch{position:relative;margin-bottom:18px}
@@ -216,6 +221,22 @@ input[type=number]:focus{outline:none;border-color:var(--gold)}
 .dia-c{color:var(--text);line-height:1.5;flex:1}
 .dia-chk{margin-left:auto;color:var(--ok)}
 
+/* Favoritos */
+.ver-fav{color:var(--gold);font-size:.85rem;cursor:pointer;margin-left:6px;transition:transform .2s}
+.ver-fav:hover{transform:scale(1.3)}
+.verso{position:relative}
+.fav-badge{position:absolute;right:4px;top:6px;color:var(--gold);font-size:.75rem;pointer-events:none}
+/* Tabs Bíblia */
+.biblia-tabs{display:flex;gap:6px;margin-bottom:18px}
+.biblia-tab{flex:1;padding:9px;border:1px solid var(--border);border-radius:50px;background:var(--card);color:var(--muted);font-family:'Lato',sans-serif;font-size:.82rem;cursor:pointer;transition:all .2s;text-align:center}
+.biblia-tab.active{background:var(--gold);color:var(--dark);border-color:var(--gold);font-weight:700}
+/* Marcadores */
+.marcadores-cores{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;justify-content:center}
+.cor-btn{width:36px;height:36px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .2s;position:relative}
+.cor-btn.active{border-color:var(--white);transform:scale(1.2);box-shadow:0 0 12px rgba(255,255,255,.3)}
+.cor-badge{font-size:.62rem;position:absolute;top:-6px;right:-6px;background:var(--dark);color:var(--white);border-radius:50px;padding:1px 5px;min-width:16px;text-align:center}
+.marcador-item{padding:12px 14px;border-radius:10px;margin-bottom:10px;border-left:4px solid transparent;font-size:.88rem;line-height:1.6}
+.marcador-ref{font-size:.75rem;font-weight:700;margin-bottom:4px;letter-spacing:.5px}
 /* Stats */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:11px;margin-bottom:18px}
 .stat-mini{background:var(--gold-dim);border:1px solid var(--border);border-radius:12px;padding:15px 11px;text-align:center;transition:all .25s}
@@ -355,15 +376,59 @@ input[type=number]:focus{outline:none;border-color:var(--gold)}
   </div>
 </div>
 
-<!-- Nav -->
-<nav>
-  <button class="active" onclick="showSec('prog',this)">📅 Programação</button>
-  <button onclick="showSec('avisos',this)">📢 Avisos</button>
-  <button onclick="showSec('midias',this)">🎬 Cultos</button>
-  <button onclick="showSec('biblia',this)">📖 Bíblia</button>
-  <button onclick="showSec('plano',this)">🗓 Plano</button>
-  <button onclick="showSec('stats',this)">📊 Estatísticas</button>
-</nav>
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <button class="bn-btn active" id="bn-prog" onclick="showSec('prog','prog')">
+    <span class="bn-icon">📅</span>Programação
+  </button>
+  <button class="bn-btn" id="bn-biblia" onclick="showSec('biblia','biblia')">
+    <span class="bn-icon">📖</span>Bíblia
+  </button>
+  <button class="bn-btn" id="bn-plano" onclick="showSec('plano','plano')">
+    <span class="bn-icon">🗓</span>Plano
+  </button>
+  <button class="bn-btn" id="bn-loja" onclick="showSec('loja','loja')">
+    <span class="bn-icon">🛍️</span>Loja
+  </button>
+  <button class="bn-btn" id="bn-mais" onclick="abrirMais()">
+    <span class="bn-icon">☰</span>Mais
+  </button>
+</div>
+
+<!-- Modal Mais -->
+<div class="mais-overlay" id="maisOverlay" onclick="fecharMais(event)">
+  <div class="mais-sheet">
+    <div class="mais-handle"></div>
+    <div class="mais-item" onclick="showSec('midias','midias');fecharMaisDir()">
+      <span class="mi-icon">🎬</span> Cultos
+    </div>
+    <div class="mais-item" onclick="showSec('avisos','avisos');fecharMaisDir()">
+      <span class="mi-icon">📢</span> Avisos
+    </div>
+    <div class="mais-item" onclick="showSec('loja','loja');fecharMaisDir()">
+      <span class="mi-icon">🛍️</span> Loja
+    </div>
+    <div class="mais-item" onclick="showSec('membros','membros');fecharMaisDir()">
+      <span class="mi-icon">🙏</span> Seja um Membro
+    </div>
+    <div class="mais-item" onclick="showSec('favoritos','favoritos');fecharMaisDir()">
+      <span class="mi-icon">⭐</span> Versículos Favoritos
+    </div>
+    <div class="mais-item" onclick="showSec('stats','stats');fecharMaisDir()">
+      <span class="mi-icon">📊</span> Estatísticas
+    </div>
+    <div class="mais-item" onclick="openProfile();fecharMaisDir()">
+      <span class="mi-icon">👤</span> Meu Perfil
+    </div>
+    <div class="mais-item" id="maisAdminBtn" style="display:none" onclick="showSec('admin','admin');fecharMaisDir()">
+      <span class="mi-icon">⚙️</span> Painel Gerencial
+    </div>
+    <div class="mais-divider"></div>
+    <div class="mais-item danger" onclick="logout()">
+      <span class="mi-icon">🚪</span> Sair
+    </div>
+  </div>
+</div>
 
 <div class="container">
 
@@ -413,8 +478,14 @@ input[type=number]:focus{outline:none;border-color:var(--gold)}
   <div id="biblia" class="section">
     <div class="card">
       <h2>📖 Bíblia</h2>
+      <!-- Tabs -->
+      <div id="bibliaTabs" class="biblia-tabs">
+        <button class="biblia-tab active" onclick="showBibliaTab('livros',this)">📖 Livros</button>
+        <button class="biblia-tab" onclick="showBibliaTab('marcadores',this)">⭐ Marcadores</button>
+      </div>
+      <!-- Aba Livros -->
       <div id="vLivros">
-                <div id="searchRes"></div>
+        <div id="searchRes"></div>
         <div id="livrosContent">
           <div class="test-title">Antigo Testamento</div>
           <div class="grid-livros" id="gridAT"></div>
@@ -422,11 +493,18 @@ input[type=number]:focus{outline:none;border-color:var(--gold)}
           <div class="grid-livros" id="gridNT"></div>
         </div>
       </div>
+      <!-- Aba Marcadores -->
+      <div id="vMarcadores" class="hidden">
+        <div class="marcadores-cores" id="marcadoresCores"></div>
+        <div id="marcadoresList"><p style="color:var(--muted);font-size:.86rem;text-align:center;padding:20px">Nenhum versículo marcado ainda.<br>Durante a leitura, toque ⭐ para favoritar!</p></div>
+      </div>
+      <!-- Capítulos -->
       <div id="vCaps" class="hidden">
         <button class="back-btn" onclick="goLivros()">← Voltar</button>
         <div class="prog-wrap-bk" id="livroProgWrap"></div>
         <div class="grid-caps" id="gridCaps"></div>
       </div>
+      <!-- Leitura -->
       <div id="vLeit" class="hidden">
         <button class="back-btn" onclick="goCaps()">← Voltar</button>
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
@@ -504,6 +582,34 @@ input[type=number]:focus{outline:none;border-color:var(--gold)}
       <div style="margin-top:20px">
         <div class="test-title">Livros mais lidos</div>
         <div id="topLivros" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOJA -->
+  <div id="loja" class="section">
+    <div class="card">
+      <h2>🛍️ Loja ADVB</h2>
+      <p style="color:var(--muted);font-size:.86rem;text-align:center;padding:20px">Em breve! O administrador pode configurar os produtos pelo painel.</p>
+    </div>
+  </div>
+
+  <!-- SEJA UM MEMBRO -->
+  <div id="membros" class="section">
+    <div class="card">
+      <h2>🙏 Seja um Membro</h2>
+      <div id="membrosContent">
+        <p style="color:var(--muted);font-size:.86rem;text-align:center;padding:20px">Carregando...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAVORITOS -->
+  <div id="favoritos" class="section">
+    <div class="card">
+      <h2>⭐ Versículos Favoritos</h2>
+      <div id="favoritosContent">
+        <p style="color:var(--muted);font-size:.86rem;text-align:center;padding:20px">Nenhum favorito ainda. Na Bíblia, marque versículos como favoritos!</p>
       </div>
     </div>
   </div>
@@ -722,15 +828,28 @@ function toast(msg,ms=2800){
 // ═══════════════════════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════════════════════
-function showSec(id,btn){
+function showSec(id,bnId){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-  if(btn)btn.classList.add('active');
+  const el=document.getElementById(id);
+  if(el)el.classList.add('active');
+  document.querySelectorAll('.bn-btn').forEach(b=>b.classList.remove('active'));
+  const bnBtn=document.getElementById('bn-'+bnId);
+  if(bnBtn)bnBtn.classList.add('active');
   if(id==='stats')renderStats();
   if(id==='midias')renderVideoCategories();
   if(id==='plano')renderGlobalPlanos();
   if(id==='avisos')renderAvisos();
+}
+function abrirMais(){
+  document.getElementById('maisOverlay').classList.add('open');
+  // Mostrar botão admin se for admin
+  if(isAdmin())document.getElementById('maisAdminBtn').style.display='flex';
+}
+function fecharMais(e){
+  if(e.target===document.getElementById('maisOverlay'))fecharMaisDir();
+}
+function fecharMaisDir(){
+  document.getElementById('maisOverlay').classList.remove('open');
 }
 
 function showPlanoTab(tab,btn){
@@ -1093,6 +1212,145 @@ function renderPlanResult(){
 }
 
 // ═══════════════════════════════════════════════════════════
+//  FAVORITOS & MARCADORES
+// ═══════════════════════════════════════════════════════════
+const CORES_GRIFO=[
+  {nome:'Amarelo',cor:'#F9E04B'},
+  {nome:'Coral',cor:'#E8725A'},
+  {nome:'Verde',cor:'#7EC87A'},
+  {nome:'Azul',cor:'#6ABFDB'},
+  {nome:'Laranja',cor:'#F4A44A'},
+  {nome:'Rosa',cor:'#F2A0C0'},
+  {nome:'Lilás',cor:'#9A8FD0'},
+];
+let _favs={};// verKey->true
+let _grifos={};// verKey->nomeCor
+let _grifosTexto={};// verKey->texto
+let _corMarcadorAtiva=null;
+
+async function loadFavsGrifos(){
+  if(!uid()||uid()==='anon')return;
+  try{
+    const d=await db.collection('users').doc(uid()).get();
+    if(d.exists){
+      const data=d.data();
+      const f=data.favoritos||{};
+      const g=data.grifos||{};
+      const gt=data.grifosTexto||{};
+      _favs={};Object.keys(f).forEach(k=>{if(f[k]===true)_favs[k]=true});
+      _grifos={};Object.keys(g).forEach(k=>{_grifos[k]=g[k]});
+      _grifosTexto={};Object.keys(gt).forEach(k=>{_grifosTexto[k]=gt[k]});
+    }
+  }catch(e){}
+}
+
+async function toggleFavorito(verKey,texto,ref){
+  const jaFav=!!_favs[verKey];
+  if(jaFav){delete _favs[verKey]}else{_favs[verKey]=true}
+  // Atualizar ícone na leitura
+  const btn=document.querySelector(`[data-fav-key="${verKey}"]`);
+  if(btn)btn.textContent=jaFav?'☆':'⭐';
+  // Salvar Firebase
+  try{
+    const update={[`favoritos.${verKey}`]:!jaFav};
+    if(!jaFav)update[`favoritosTexto.${verKey}`]=texto;
+    await db.collection('users').doc(uid()).update(update);
+  }catch(e){
+    try{
+      const set={favoritos:{[verKey]:!jaFav}};
+      if(!jaFav)set.favoritosTexto={[verKey]:texto};
+      await db.collection('users').doc(uid()).set(set,{merge:true});
+    }catch{}
+  }
+  toast(jaFav?'💔 Removido dos favoritos':'⭐ Adicionado aos favoritos!');
+}
+
+function showBibliaTab(tab,btn){
+  document.querySelectorAll('.biblia-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(tab==='livros'){
+    document.getElementById('vLivros').classList.remove('hidden');
+    document.getElementById('vMarcadores').classList.add('hidden');
+    document.getElementById('vCaps').classList.add('hidden');
+    document.getElementById('vLeit').classList.add('hidden');
+    document.getElementById('bibliaTabs').classList.remove('hidden');
+  } else {
+    document.getElementById('vLivros').classList.add('hidden');
+    document.getElementById('vMarcadores').classList.remove('hidden');
+    document.getElementById('vCaps').classList.add('hidden');
+    document.getElementById('vLeit').classList.add('hidden');
+    document.getElementById('bibliaTabs').classList.remove('hidden');
+    renderMarcadores();
+  }
+}
+
+function renderMarcadores(){
+  // Renderizar bolinhas de cores
+  const coresEl=document.getElementById('marcadoresCores');
+  coresEl.innerHTML=CORES_GRIFO.map(c=>{
+    const qtd=Object.values(_grifos).filter(v=>v===c.nome).length;
+    const favQtd=Object.keys(_favs).length;
+    return`<button class="cor-btn ${_corMarcadorAtiva===c.nome?'active':''}" style="background:${c.cor}" onclick="filtrarMarcador('${c.nome}')" title="${c.nome}">
+      ${qtd>0?`<span class="cor-badge">${qtd}</span>`:''}
+    </button>`;
+  }).join('')+`<button class="cor-btn ${_corMarcadorAtiva==='fav'?'active':''}" style="background:var(--gold);font-size:1rem;display:flex;align-items:center;justify-content:center" onclick="filtrarMarcador('fav')" title="Favoritos">⭐<span class="cor-badge">${Object.keys(_favs).length}</span></button>`;
+
+  filtrarMarcador(_corMarcadorAtiva||'fav');
+}
+
+function filtrarMarcador(cor){
+  _corMarcadorAtiva=cor;
+  // Atualizar botões
+  document.querySelectorAll('.cor-btn').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById('marcadoresList');
+
+  let items=[];
+  if(cor==='fav'){
+    items=Object.keys(_favs).map(k=>({key:k,texto:_grifosTexto[k]||'',cor:'#c9a84c',corNome:'Favorito'}));
+  } else {
+    items=Object.keys(_grifos).filter(k=>_grifos[k]===cor).map(k=>{
+      const info=CORES_GRIFO.find(c=>c.nome===cor);
+      return{key:k,texto:_grifosTexto[k]||'',cor:info?.cor||'#fff',corNome:cor};
+    });
+  }
+
+  if(!items.length){
+    el.innerHTML='<p style="color:var(--muted);font-size:.86rem;text-align:center;padding:20px">Nenhum versículo com esta marcação.</p>';
+  } else {
+    el.innerHTML=items.map(item=>{
+      const ref=formatarRefVer(item.key);
+      return`<div class="marcador-item" style="background:${item.cor}18;border-left-color:${item.cor}">
+        <div class="marcador-ref" style="color:${item.cor}">${ref}</div>
+        <div style="font-size:.88rem;color:var(--text);line-height:1.6">${item.texto||'<em style="color:var(--muted)">Abra o capítulo para ver o texto</em>'}</div>
+        <button onclick="removerMarcador('${item.key}','${cor}')" style="background:none;border:none;color:var(--muted);font-size:.75rem;cursor:pointer;margin-top:4px">🗑 Remover</button>
+      </div>`;
+    }).join('');
+  }
+  renderMarcadores();
+}
+
+function formatarRefVer(key){
+  // key: "Gênesis_1_0" → "Gênesis 1:1"
+  try{
+    const partes=key.split('_');
+    if(partes.length>=3){
+      const ver=parseInt(partes[partes.length-1])+1;
+      const cap=partes[partes.length-2];
+      const livro=partes.slice(0,partes.length-2).join(' ');
+      return`${livro} ${cap}:${ver}`;
+    }
+  }catch{}
+  return key;
+}
+
+async function removerMarcador(verKey,tipo){
+  if(tipo==='fav'){delete _favs[verKey];await db.collection('users').doc(uid()).update({[`favoritos.${verKey}`]:false}).catch(()=>{})}
+  else{delete _grifos[verKey];await db.collection('users').doc(uid()).update({[`grifos.${verKey}`]:firebase.firestore.FieldValue.delete()}).catch(()=>{})}
+  renderMarcadores();
+  toast('🗑 Removido!');
+}
+
+// ═══════════════════════════════════════════════════════════
 //  BIBLE READER
 // ═══════════════════════════════════════════════════════════
 let curLivro=null,curCap=null;
@@ -1162,7 +1420,17 @@ async function loadCap(livro,cap){
 }
 
 function renderVerses(verses){
-  document.getElementById('leitContent').innerHTML=verses.map(v=>`<div class="verso"><b>${v.verse}</b>${v.text}</div>`).join('');
+  const key=()=>curLivro&&curCap?`${curLivro}_${curCap}`:'';
+  document.getElementById('leitContent').innerHTML=verses.map((v,i)=>{
+    const verKey=`${key()}_${i}`;
+    const jaFav=!!_favs[verKey];
+    const corGrifo=_grifos[verKey]?CORES_GRIFO.find(c=>c.nome===_grifos[verKey])?.cor:null;
+    const estiloGrifo=corGrifo?`background:${corGrifo}22;border-left:3px solid ${corGrifo};padding-left:8px;border-radius:4px`:'';
+    return`<div class="verso" style="${estiloGrifo}">
+      <b>${v.verse}</b>${v.text}
+      <span class="ver-fav" data-fav-key="${verKey}" onclick="toggleFavorito('${verKey}',\`${v.text.replace(/`/g,"'")}\`,'${curLivro} ${curCap}:${v.verse}')">${jaFav?'⭐':'☆'}</span>
+    </div>`;
+  }).join('');
 }
 
 function navCap(dir){
@@ -1329,7 +1597,7 @@ function scheduleNotif(){
 // ═══════════════════════════════════════════════════════════
 initTheme();applyMainBg();
 Promise.all([initBanner(),initUserUI(),renderSchedule()]).then(()=>{});
-renderLivros();renderVOD();renderLivrosChk();checkAvisosBadge();
+renderLivros();renderVOD();renderLivrosChk();checkAvisosBadge();loadFavsGrifos();
 window.togglePlanDay=togglePlanDay;
 // fim
 // Restaurar plano — do localStorage primeiro (rápido)
