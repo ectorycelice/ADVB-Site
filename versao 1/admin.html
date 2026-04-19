@@ -175,13 +175,16 @@ select.inp{cursor:pointer}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:3px}
 
 @media(max-width:700px){
-  .sidebar{width:60px;padding:0 0 12px}
-  .brand h1,.brand p,.slbl,.sitem span,.sfooter .back-link span{display:none}
-  .sitem{justify-content:center;padding:12px}
-  .sitem .icon{font-size:1.2rem}
+  .sidebar{position:fixed;left:-230px;top:0;height:100vh;width:230px;z-index:100;transition:left .3s ease;box-shadow:4px 0 20px rgba(0,0,0,.5)}
+  .sidebar.open{left:0}
+  .mob-overlay{display:block!important}
   .content{padding:16px}
   .field-row{grid-template-columns:1fr}
+  .topbar{padding:12px 16px}
+  .mob-menu-btn{display:flex!important}
 }
+.mob-menu-btn{display:none;background:none;border:none;color:var(--gold);font-size:1.4rem;cursor:pointer;padding:4px 8px;margin-right:8px}
+.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99;backdrop-filter:blur(2px)}
 </style>
 </head>
 <body>
@@ -217,8 +220,13 @@ select.inp{cursor:pointer}
 
 <!-- Main -->
 <div class="main">
+  <!-- Overlay mobile -->
+  <div class="mob-overlay" id="mobOverlay" onclick="closeMobMenu()"></div>
   <div class="topbar">
-    <h2 id="topbarTitle">Dashboard</h2>
+    <div style="display:flex;align-items:center;gap:4px">
+      <button class="mob-menu-btn" onclick="toggleMobMenu()">☰</button>
+      <h2 id="topbarTitle">Dashboard</h2>
+    </div>
     <div style="display:flex;gap:8px;align-items:center">
       <span id="topbarUser" style="font-size:.82rem;color:var(--muted)"></span>
     </div>
@@ -566,12 +574,16 @@ function toast(msg,ms=2800){const t=document.getElementById('toast');t.textConte
 //  NAV
 // ═══════════════════════════════════════════════════════════
 const titles={'dashboard':'Dashboard','usuarios':'Usuários','cultos':'Programação de Cultos','avisos':'Avisos e Comunicados','videos':'Gerenciar Vídeos','planos':'Planos de Leitura','loja':'Loja ADVB','novos_membros':'Novos Membros','fundo_login':'Fundo do Login','fundo_main':'Fundo Principal','igreja':'Nome & Banner'};
+function toggleMobMenu(){document.querySelector('.sidebar').classList.toggle('open')}
+function closeMobMenu(){document.querySelector('.sidebar').classList.remove('open')}
+
 function showPanel(id,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
   document.querySelectorAll('.sitem').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
   document.getElementById('topbarTitle').textContent=titles[id]||id;
+  closeMobMenu();
   if(id==='dashboard')renderDashboard();
   else if(id==='usuarios')renderUsers();
   else if(id==='cultos')renderCultosEditor();
@@ -597,8 +609,8 @@ const LIVROS={...AT,...NT};
 // ═══════════════════════════════════════════════════════════
 async function renderDashboard(){
   const users=await getUsers();
-  const plans=getGlobalPlanos();
-  const vdata=getVideoData();
+  const plans=await getGlobalPlanos();
+  const vdata=await getVideoData();
   const vcount=(vdata.videos||[]).length;
   const ccount=(vdata.categories||[]).length;
   document.getElementById('dashStats').innerHTML=[
