@@ -202,6 +202,10 @@ select.inp{cursor:pointer}
     <button class="sitem" onclick="showPanel('videos',this)"><span class="icon">🎬</span><span>Vídeos</span></button>
     <button class="sitem" onclick="showPanel('planos',this)"><span class="icon">🗓</span><span>Planos de Leitura</span></button>
     <div class="slbl">Aparência</div>
+    <div class="slbl">Loja & Membros</div>
+    <button class="sitem" onclick="showPanel('loja',this)"><span class="icon">🛍️</span><span>Loja</span></button>
+    <button class="sitem" onclick="showPanel('novos_membros',this)"><span class="icon">🙋</span><span>Novos Membros</span></button>
+    <div class="slbl">Aparência</div>
     <button class="sitem" onclick="showPanel('fundo_login',this)"><span class="icon">🖼</span><span>Fundo Login</span></button>
     <button class="sitem" onclick="showPanel('fundo_main',this)"><span class="icon">🎨</span><span>Fundo Principal</span></button>
     <button class="sitem" onclick="showPanel('igreja',this)"><span class="icon">✏️</span><span>Nome/Banner</span></button>
@@ -328,6 +332,55 @@ select.inp{cursor:pointer}
       </div>
     </div>
 
+    <!-- ═══ LOJA ═══ -->
+    <div class="panel" id="panel-loja">
+      <div class="card">
+        <h2>🛍️ Loja ADVB</h2>
+        <div class="field">
+          <label class="flbl">WhatsApp da Loja (com DDD e código do país)</label>
+          <input class="inp" type="text" id="lojaWhats" placeholder="Ex: 5511963823065">
+        </div>
+        <button class="btn btn-primary" style="margin-bottom:20px" onclick="saveLojaWhats()">💾 Salvar WhatsApp</button>
+        <div class="sec">Produtos</div>
+        <button class="btn btn-primary" style="margin-bottom:16px" onclick="openProdutoModal()">+ Novo Produto</button>
+        <div id="produtosEditor"></div>
+      </div>
+    </div>
+
+    <!-- ═══ NOVOS MEMBROS ═══ -->
+    <div class="panel" id="panel-novos_membros">
+      <div class="card">
+        <h2>🙋 Seja um Membro</h2>
+        <div class="field">
+          <label class="flbl">Título</label>
+          <input class="inp" type="text" id="nmTitulo" placeholder="Ex: Venha fazer parte da nossa família!">
+        </div>
+        <div class="field">
+          <label class="flbl">Descrição / Convite</label>
+          <textarea class="inp" id="nmDescricao" placeholder="Texto de boas-vindas..." style="min-height:100px"></textarea>
+        </div>
+        <div class="field">
+          <label class="flbl">Texto do Botão</label>
+          <input class="inp" type="text" id="nmBotao" placeholder="Ex: 📲 Quero ser membro">
+        </div>
+        <div class="field">
+          <label class="flbl">WhatsApp de Contato</label>
+          <input class="inp" type="text" id="nmWhats" placeholder="Ex: 5511963823065">
+        </div>
+        <div class="field">
+          <label class="flbl">Imagem (opcional)</label>
+          <div class="upload-area" style="margin-bottom:8px">
+            <input type="file" accept="image/*" onchange="handleNmImagem(event)">
+            <div class="ui">🖼️</div><div class="ut">Clique para adicionar imagem</div>
+          </div>
+          <img id="nmImagemPrev" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;display:none;border:1px solid var(--border);margin-bottom:8px">
+          <input type="hidden" id="nmImagem">
+          <button type="button" id="nmRemoveImg" onclick="removeNmImagem()" style="display:none" class="btn-danger-sm">🗑 Remover imagem</button>
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="saveNovosMembros()">💾 Salvar</button>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -372,6 +425,28 @@ select.inp{cursor:pointer}
     <div class="field"><label class="flbl">Descrição (opcional)</label><textarea class="inp" id="vmDesc" placeholder="Breve descrição do vídeo..."></textarea></div>
     <div class="field"><label class="flbl">Data (opcional)</label><input class="inp" type="text" id="vmDate" placeholder="Ex: 13/04/2025"></div>
     <button class="btn btn-primary" style="width:100%" onclick="saveVideo()">💾 Salvar Vídeo</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL: PRODUTO ═══ -->
+<div class="overlay" id="produtoModal" onclick="closeModal('produtoModal',event)">
+  <div class="modal">
+    <button class="mclose" onclick="closeModalById('produtoModal')">×</button>
+    <h3 id="produtoModalTitle">Novo Produto</h3>
+    <input type="hidden" id="pmProdId">
+    <div class="field"><label class="flbl">Nome do Produto *</label><input class="inp" type="text" id="pmProdNome" placeholder="Ex: Camiseta ADVB"></div>
+    <div class="field"><label class="flbl">Preço *</label><input class="inp" type="text" id="pmProdPreco" placeholder="Ex: 49.90"></div>
+    <div class="field">
+      <label class="flbl">Foto (opcional)</label>
+      <div class="upload-area" style="margin-bottom:6px">
+        <input type="file" accept="image/*" onchange="handleProdutoFoto(event)">
+        <div class="ui">🖼️</div><div class="ut">Clique para adicionar foto</div>
+      </div>
+      <img id="pmProdFotoPrev" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;display:none;border:1px solid var(--border)">
+      <input type="hidden" id="pmProdFoto">
+      <button type="button" id="pmRemoveFoto" onclick="removeProdutoFoto()" style="display:none;margin-top:6px" class="btn-danger-sm">🗑 Remover foto</button>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="saveProduto()">💾 Salvar Produto</button>
   </div>
 </div>
 
@@ -490,7 +565,7 @@ function toast(msg,ms=2800){const t=document.getElementById('toast');t.textConte
 // ═══════════════════════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════════════════════
-const titles={'dashboard':'Dashboard','usuarios':'Usuários','cultos':'Programação de Cultos','avisos':'Avisos e Comunicados','videos':'Gerenciar Vídeos','planos':'Planos de Leitura','fundo_login':'Fundo do Login','fundo_main':'Fundo Principal','igreja':'Nome & Banner'};
+const titles={'dashboard':'Dashboard','usuarios':'Usuários','cultos':'Programação de Cultos','avisos':'Avisos e Comunicados','videos':'Gerenciar Vídeos','planos':'Planos de Leitura','loja':'Loja ADVB','novos_membros':'Novos Membros','fundo_login':'Fundo do Login','fundo_main':'Fundo Principal','igreja':'Nome & Banner'};
 function showPanel(id,btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('panel-'+id).classList.add('active');
@@ -506,6 +581,8 @@ function showPanel(id,btn){
   else if(id==='fundo_login')initBgEditor('login');
   else if(id==='fundo_main')initBgEditor('main');
   else if(id==='igreja')loadIgrejaData();
+  else if(id==='loja')renderLojaPanel();
+  else if(id==='novos_membros')loadNovosMembros();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1045,6 +1122,138 @@ async function saveIgreja(){
 }
 
 // ═══════════════════════════════════════════════════════════
+//  LOJA
+// ═══════════════════════════════════════════════════════════
+let adminProdutos=[];
+
+async function renderLojaPanel(){
+  const doc=await db.collection('config').doc('loja').get();
+  const data=doc.exists?doc.data():{};
+  adminProdutos=data.produtos||[];
+  document.getElementById('lojaWhats').value=data.whatsapp||'';
+  drawProdutos();
+}
+
+function drawProdutos(){
+  const el=document.getElementById('produtosEditor');
+  if(!adminProdutos.length){el.innerHTML='<p style="color:var(--muted);font-size:.84rem">Nenhum produto cadastrado ainda.</p>';return}
+  el.innerHTML=adminProdutos.map((p,i)=>`
+    <div class="cbox">
+      <div class="chdr">
+        <div class="cname">${sanitize(p.nome)} — R$ ${sanitize(p.preco)}</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-ghost btn-xs" onclick="openProdutoModal('${p.id}')">✏️</button>
+          <button class="btn-danger-sm" onclick="deleteProduto('${p.id}')">🗑</button>
+        </div>
+      </div>
+      ${p.foto?`<img src="${p.foto}" style="width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border)">`:''}
+    </div>`).join('');
+}
+
+async function saveLojaWhats(){
+  const whats=document.getElementById('lojaWhats').value.trim();
+  await db.collection('config').doc('loja').set({produtos:adminProdutos,whatsapp:whats},{merge:true});
+  toast('✅ WhatsApp salvo!');
+}
+
+function openProdutoModal(id=null){
+  const p=id?adminProdutos.find(x=>x.id===id):null;
+  document.getElementById('produtoModalTitle').textContent=id?'Editar Produto':'Novo Produto';
+  document.getElementById('pmProdId').value=id||'';
+  document.getElementById('pmProdNome').value=p?.nome||'';
+  document.getElementById('pmProdPreco').value=p?.preco||'';
+  document.getElementById('pmProdFoto').value=p?.foto||'';
+  const prev=document.getElementById('pmProdFotoPrev');
+  if(p?.foto){prev.src=p.foto;prev.style.display='block';document.getElementById('pmRemoveFoto').style.display='block'}
+  else{prev.src='';prev.style.display='none';document.getElementById('pmRemoveFoto').style.display='none'}
+  document.getElementById('produtoModal').classList.add('open');
+}
+
+function handleProdutoFoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const b=ev.target.result;
+    document.getElementById('pmProdFoto').value=b;
+    const prev=document.getElementById('pmProdFotoPrev');
+    prev.src=b;prev.style.display='block';
+    document.getElementById('pmRemoveFoto').style.display='block';
+  };r.readAsDataURL(f);
+}
+function removeProdutoFoto(){
+  document.getElementById('pmProdFoto').value='';
+  document.getElementById('pmProdFotoPrev').src='';
+  document.getElementById('pmProdFotoPrev').style.display='none';
+  document.getElementById('pmRemoveFoto').style.display='none';
+}
+
+async function saveProduto(){
+  const nome=document.getElementById('pmProdNome').value.trim();
+  const preco=document.getElementById('pmProdPreco').value.trim();
+  if(!nome){toast('⚠️ Nome obrigatório');return}
+  if(!preco){toast('⚠️ Preço obrigatório');return}
+  const obj={id:document.getElementById('pmProdId').value||'prod_'+Date.now(),nome,preco,foto:document.getElementById('pmProdFoto').value};
+  const i=adminProdutos.findIndex(p=>p.id===obj.id);
+  if(i!==-1)adminProdutos[i]=obj;else adminProdutos.push(obj);
+  const whats=document.getElementById('lojaWhats').value.trim();
+  await db.collection('config').doc('loja').set({produtos:adminProdutos,whatsapp:whats},{merge:true});
+  closeModalById('produtoModal');drawProdutos();toast('✅ Produto salvo!');
+}
+
+async function deleteProduto(id){
+  if(!confirm('Remover produto?'))return;
+  adminProdutos=adminProdutos.filter(p=>p.id!==id);
+  await db.collection('config').doc('loja').set({produtos:adminProdutos},{merge:true});
+  drawProdutos();toast('🗑 Produto removido!');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NOVOS MEMBROS
+// ═══════════════════════════════════════════════════════════
+async function loadNovosMembros(){
+  const doc=await db.collection('config').doc('novos_membros').get();
+  const d=doc.exists?doc.data():{};
+  document.getElementById('nmTitulo').value=d.titulo||'';
+  document.getElementById('nmDescricao').value=d.descricao||'';
+  document.getElementById('nmBotao').value=d.botao_texto||'📲 Quero ser membro';
+  document.getElementById('nmWhats').value=d.whatsapp||'';
+  document.getElementById('nmImagem').value=d.foto||'';
+  const prev=document.getElementById('nmImagemPrev');
+  if(d.foto){prev.src=d.foto;prev.style.display='block';document.getElementById('nmRemoveImg').style.display='block'}
+  else{prev.src='';prev.style.display='none';document.getElementById('nmRemoveImg').style.display='none'}
+}
+
+function handleNmImagem(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const b=ev.target.result;
+    document.getElementById('nmImagem').value=b;
+    const prev=document.getElementById('nmImagemPrev');
+    prev.src=b;prev.style.display='block';
+    document.getElementById('nmRemoveImg').style.display='block';
+  };r.readAsDataURL(f);
+}
+function removeNmImagem(){
+  document.getElementById('nmImagem').value='';
+  document.getElementById('nmImagemPrev').src='';
+  document.getElementById('nmImagemPrev').style.display='none';
+  document.getElementById('nmRemoveImg').style.display='none';
+}
+
+async function saveNovosMembros(){
+  const data={
+    titulo:document.getElementById('nmTitulo').value.trim(),
+    descricao:document.getElementById('nmDescricao').value.trim(),
+    botao_texto:document.getElementById('nmBotao').value.trim()||'📲 Quero ser membro',
+    whatsapp:document.getElementById('nmWhats').value.trim(),
+    foto:document.getElementById('nmImagem').value,
+  };
+  await db.collection('config').doc('novos_membros').set(data);
+  toast('✅ Novos Membros salvo!');
+}
+
+// ═══════════════════════════════════════════════════════════
 //  MODALS
 // ═══════════════════════════════════════════════════════════
 function closeModal(id,e){if(e.target===document.getElementById(id))closeModalById(id)}
@@ -1099,6 +1308,15 @@ window.handleAvisoImagem=handleAvisoImagem;
 window.removeAvisoImagem=removeAvisoImagem;
 window.extractYtId=extractYtId;
 window.initBgEditor=initBgEditor;
+window.saveLojaWhats=saveLojaWhats;
+window.openProdutoModal=openProdutoModal;
+window.saveProduto=saveProduto;
+window.deleteProduto=deleteProduto;
+window.handleProdutoFoto=handleProdutoFoto;
+window.removeProdutoFoto=removeProdutoFoto;
+window.saveNovosMembros=saveNovosMembros;
+window.handleNmImagem=handleNmImagem;
+window.removeNmImagem=removeNmImagem;
 
 renderDashboard();
 </script>
