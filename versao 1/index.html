@@ -1518,8 +1518,7 @@ async function copiarSelecionados(){
     const verKey=`${key}_${i}`;
     if(_selecionados.has(verKey))textos.push(`${v.verse}. ${v.text}`);
   });
-  const txt=`"${textos.join('
-')}" — ${curLivro} ${curCap}`;
+  const txt='"'+textos.join('\n')+'" — '+curLivro+' '+curCap;
   try{await navigator.clipboard.writeText(txt);toast('📋 Copiado!')}catch{toast('❌ Erro ao copiar')}
   limparSelecao();
 }
