@@ -894,7 +894,7 @@ async function renderPlansEditor(){
       <div class="plan-box-acts">
         <button class="toggle-btn ${p.visible!==false?'':'off'}" onclick="togglePlanVisible('${p.id}')">${p.visible!==false?'✅ Visível':'⛔ Oculto'}</button>
         ${!p.builtin?`<button class="btn-ghost btn-xs" onclick="openEditPlanModal('${p.id}')">✏️ Editar</button>`:''}
-        ${!p.builtin?`<button class="btn-danger-sm" onclick="deletePlan('${p.id}')">🗑 Remover</button>`:''}
+        <button class="btn-danger-sm" onclick="deletePlan('${p.id}')">🗑 Remover</button>
       </div>
     </div>`).join('');
 }

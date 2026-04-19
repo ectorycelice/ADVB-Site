@@ -1037,15 +1037,8 @@ async function getGlobalPlanos(){
     const d=await db.collection('config').doc('planos').get();
     let stored=d.exists?d.data().list||[]:[];
     const defaults=getDefaultPlanos();
-    let changed=false;
-    ['plan_default_1','plan_default_2'].forEach(id=>{
-      if(!stored.find(p=>p.id===id)){
-        const def=defaults.find(d=>d.id===id);
-        if(def){stored.unshift(def);changed=true}
-      }
-    });
-    if(!d.exists||changed) await saveGlobalPlanos(stored);
     // Garantir que planos default sempre têm schedule gerado localmente
+    // mas NÃO re-adicionar ao Firebase se foram deletados pelo admin
     stored=stored.map(p=>{
       if((p.id==='plan_default_1'||p.id==='plan_default_2')&&(!p.schedule||!p.schedule.length)){
         const def=defaults.find(d=>d.id===p.id);
@@ -1053,6 +1046,11 @@ async function getGlobalPlanos(){
       }
       return p;
     });
+    // Se não existe nada no Firebase ainda, usar os defaults (primeira vez)
+    if(!d.exists){
+      await saveGlobalPlanos(defaults);
+      return defaults;
+    }
     return stored;
   }catch{return getDefaultPlanos()}
 }
