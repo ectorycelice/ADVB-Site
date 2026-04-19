@@ -221,6 +221,17 @@ input[type=number]:focus{outline:none;border-color:var(--gold)}
 .dia-c{color:var(--text);line-height:1.5;flex:1}
 .dia-chk{margin-left:auto;color:var(--ok)}
 
+/* Menu seleção versículo */
+.ver-sel-bar{position:sticky;top:0;z-index:10;background:var(--dark2);border-bottom:1px solid var(--border);padding:10px 14px;display:none;flex-direction:column;gap:10px;animation:fadeUp .2s ease}
+.ver-sel-bar.show{display:flex}
+.ver-sel-acoes{display:flex;gap:8px;justify-content:center}
+.ver-acao-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:50px;border:1px solid var(--border);background:var(--card);color:var(--text);font-family:'Lato',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s}
+.ver-acao-btn:hover{border-color:var(--gold);color:var(--gold)}
+.ver-cores{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.ver-cor{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .2s}
+.ver-cor:hover{transform:scale(1.2);box-shadow:0 0 10px rgba(255,255,255,.2)}
+.verso.selecionado{background:rgba(201,168,76,.15);border-left:3px solid var(--gold);padding-left:8px;border-radius:4px}
+.ver-sel-count{font-size:.8rem;color:var(--muted);text-align:center}
 /* Favoritos */
 .ver-fav{color:var(--gold);font-size:.85rem;cursor:pointer;margin-left:6px;transition:transform .2s}
 .ver-fav:hover{transform:scale(1.3)}
@@ -512,6 +523,16 @@ input[type=number]:focus{outline:none;border-color:var(--gold)}
           <button class="share-btn" onclick="shareCap()">🔗 Compartilhar</button>
         </div>
         <div class="offline-badge" id="offBadge">⚠️ Sem conexão — exibindo cache</div>
+        <!-- Barra de ações quando versículos selecionados -->
+        <div class="ver-sel-bar" id="verSelBar">
+          <div class="ver-sel-count" id="verSelCount">0 selecionados</div>
+          <div class="ver-sel-acoes">
+            <button class="ver-acao-btn" onclick="favoritarSelecionados()">⭐ Favoritar</button>
+            <button class="ver-acao-btn" onclick="copiarSelecionados()">📋 Copiar</button>
+            <button class="ver-acao-btn" onclick="limparSelecao()">✕ Limpar</button>
+          </div>
+          <div class="ver-cores" id="verCores"></div>
+        </div>
         <div id="leitContent"><div class="spinner-wrap"><div class="spinner"></div><p>Carregando...</p></div></div>
         <label class="lido-lbl"><input type="checkbox" id="checkLido"> ✔️ Marcar capítulo como lido</label>
         <div class="nav-caps">
@@ -913,7 +934,7 @@ async function renderSchedule(){
         <div class="sched-day">${cu.dia||'—'}</div>
         <div class="sched-name">${cu.nome||'Culto'}</div>
         <div class="sched-time">${cu.horario||''}</div>
-        ${cu.ytAtivo&&cu.ytUrl?`<a class="yt-btn" href="${cu.ytUrl}" target="_blank"><svg viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>YouTube</a>`:''}
+        ${cu.ytAtivo&&cu.ytUrl?`<a class="yt-btn" href="${cu.ytUrl}" target="_blank"><span style="font-size:1rem">●</span> AO VIVO</a>`:''}
       </div>
     </div>`).join('');
 }
@@ -1404,33 +1425,125 @@ async function loadCap(livro,cap){
   const key=livro+cap;
   if(capCache[key]){renderVerses(capCache[key]);return}
   document.getElementById('leitContent').innerHTML='<div class="spinner-wrap"><div class="spinner"></div><p>Carregando...</p></div>';
-  document.getElementById('offBadge').style.display='none';
+  const ob=document.getElementById('offBadge');if(ob)ob.style.display='none';
   try{
-    const slug=API[livro];
-    const r=await fetch(`https://bible-api.com/${encodeURIComponent(slug)}+${cap}?translation=almeida`);
+    const slug=(API[livro]||livro.toLowerCase()).replace(/\s+/g,'+');
+    const r=await fetch(`https://bible-api.com/${slug}+${cap}?translation=almeida`);
     if(!r.ok)throw new Error('offline');
     const d=await r.json();
     const verses=d.verses||[];
     capCache[key]=verses;
     renderVerses(verses);
   }catch{
-    document.getElementById('offBadge').style.display='block';
+    const ob2=document.getElementById('offBadge');if(ob2)ob2.style.display='block';
     document.getElementById('leitContent').innerHTML='<p style="color:var(--muted);font-size:.86rem;padding:20px;text-align:center">Sem conexão. Tente novamente quando online.</p>';
   }
 }
 
+let _versiculosAtivos=[];
+let _selecionados=new Set();
+
 function renderVerses(verses){
-  const key=()=>curLivro&&curCap?`${curLivro}_${curCap}`:'';
+  _versiculosAtivos=verses;
+  _selecionados.clear();
+  atualizarBarraSel();
+  // Inicializar bolinhas de cores na barra
+  const coresEl=document.getElementById('verCores');
+  if(coresEl)coresEl.innerHTML=CORES_GRIFO.map(c=>`<button class="ver-cor" style="background:${c.cor}" title="${c.nome}" onclick="grifarSelecionados('${c.nome}','${c.cor}')"></button>`).join('');
+
+  const key=curLivro&&curCap?`${curLivro}_${curCap}`:'';
   document.getElementById('leitContent').innerHTML=verses.map((v,i)=>{
-    const verKey=`${key()}_${i}`;
+    const verKey=`${key}_${i}`;
     const jaFav=!!_favs[verKey];
     const corGrifo=_grifos[verKey]?CORES_GRIFO.find(c=>c.nome===_grifos[verKey])?.cor:null;
     const estiloGrifo=corGrifo?`background:${corGrifo}22;border-left:3px solid ${corGrifo};padding-left:8px;border-radius:4px`:'';
-    return`<div class="verso" style="${estiloGrifo}">
+    return`<div class="verso" id="ver_${i}" style="${estiloGrifo};cursor:pointer" onclick="toggleSelVer(${i})">
       <b>${v.verse}</b>${v.text}
-      <span class="ver-fav" data-fav-key="${verKey}" onclick="toggleFavorito('${verKey}',\`${v.text.replace(/`/g,"'")}\`,'${curLivro} ${curCap}:${v.verse}')">${jaFav?'⭐':'☆'}</span>
+      ${jaFav?`<span class="fav-badge">⭐</span>`:''}
     </div>`;
   }).join('');
+}
+
+function toggleSelVer(i){
+  const key=curLivro&&curCap?`${curLivro}_${curCap}`:'';
+  const verKey=`${key}_${i}`;
+  const el=document.getElementById('ver_'+i);
+  if(_selecionados.has(verKey)){
+    _selecionados.delete(verKey);
+    el.classList.remove('selecionado');
+  } else {
+    _selecionados.add(verKey);
+    el.classList.add('selecionado');
+  }
+  atualizarBarraSel();
+}
+
+function atualizarBarraSel(){
+  const bar=document.getElementById('verSelBar');
+  const count=document.getElementById('verSelCount');
+  if(!bar)return;
+  if(_selecionados.size>0){
+    bar.classList.add('show');
+    count.textContent=`${_selecionados.size} versículo(s) selecionado(s)`;
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+function limparSelecao(){
+  _selecionados.forEach(verKey=>{
+    const idx=verKey.split('_').pop();
+    document.getElementById('ver_'+idx)?.classList.remove('selecionado');
+  });
+  _selecionados.clear();
+  atualizarBarraSel();
+}
+
+async function favoritarSelecionados(){
+  const key=curLivro&&curCap?`${curLivro}_${curCap}`:'';
+  for(const verKey of _selecionados){
+    const idx=parseInt(verKey.split('_').pop());
+    const v=_versiculosAtivos[idx];
+    if(!v)continue;
+    await toggleFavorito(verKey,v.text,`${curLivro} ${curCap}:${v.verse}`);
+  }
+  limparSelecao();
+  renderVerses(_versiculosAtivos);
+}
+
+async function copiarSelecionados(){
+  const key=curLivro&&curCap?`${curLivro}_${curCap}`:'';
+  const textos=[];
+  _versiculosAtivos.forEach((v,i)=>{
+    const verKey=`${key}_${i}`;
+    if(_selecionados.has(verKey))textos.push(`${v.verse}. ${v.text}`);
+  });
+  const txt=`"${textos.join('
+')}" — ${curLivro} ${curCap}`;
+  try{await navigator.clipboard.writeText(txt);toast('📋 Copiado!')}catch{toast('❌ Erro ao copiar')}
+  limparSelecao();
+}
+
+async function grifarSelecionados(corNome,corHex){
+  const key=curLivro&&curCap?`${curLivro}_${curCap}`:'';
+  const updates={};const textosUp={};
+  for(const verKey of _selecionados){
+    const idx=parseInt(verKey.split('_').pop());
+    const v=_versiculosAtivos[idx];
+    if(!v)continue;
+    const jaGrifado=_grifos[verKey]===corNome;
+    if(jaGrifado){delete _grifos[verKey];delete _grifosTexto[verKey];updates[`grifos.${verKey}`]=firebase.firestore.FieldValue.delete()}
+    else{_grifos[verKey]=corNome;_grifosTexto[verKey]=v.text;updates[`grifos.${verKey}`]=corNome;textosUp[`grifosTexto.${verKey}`]=v.text}
+  }
+  try{
+    const merged={...updates,...textosUp};
+    if(Object.keys(merged).length>0)await db.collection('users').doc(uid()).update(merged);
+  }catch(e){
+    try{await db.collection('users').doc(uid()).set({grifos:Object.fromEntries(Object.entries(_grifos)),grifosTexto:Object.fromEntries(Object.entries(_grifosTexto))},{merge:true})}catch{}
+  }
+  toast('🖊️ Versículos grifados!');
+  limparSelecao();
+  renderVerses(_versiculosAtivos);
 }
 
 function navCap(dir){
