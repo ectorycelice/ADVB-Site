@@ -431,7 +431,7 @@ input[type=number]:focus{outline:none;border-color:var(--gold)}
     <div class="mais-item" onclick="openProfile();fecharMaisDir()">
       <span class="mi-icon">👤</span> Meu Perfil
     </div>
-    <div class="mais-item" id="maisAdminBtn" style="display:none" onclick="showSec('admin','admin');fecharMaisDir()">
+    <div class="mais-item" id="maisAdminBtn" style="display:none" onclick="location.href='admin.html'">
       <span class="mi-icon">⚙️</span> Painel Gerencial
     </div>
     <div class="mais-divider"></div>
@@ -1245,6 +1245,7 @@ const CORES_GRIFO=[
   {nome:'Lilás',cor:'#9A8FD0'},
 ];
 let _favs={};// verKey->true
+let _favoritosTexto={};// verKey->texto do favorito
 let _grifos={};// verKey->nomeCor
 let _grifosTexto={};// verKey->texto
 let _corMarcadorAtiva=null;
@@ -1261,13 +1262,16 @@ async function loadFavsGrifos(){
       _favs={};Object.keys(f).forEach(k=>{if(f[k]===true)_favs[k]=true});
       _grifos={};Object.keys(g).forEach(k=>{_grifos[k]=g[k]});
       _grifosTexto={};Object.keys(gt).forEach(k=>{_grifosTexto[k]=gt[k]});
+      const ft=data.favoritosTexto||{};
+      _favoritosTexto={};Object.keys(ft).forEach(k=>{_favoritosTexto[k]=ft[k]});
     }
   }catch(e){}
 }
 
 async function toggleFavorito(verKey,texto,ref){
   const jaFav=!!_favs[verKey];
-  if(jaFav){delete _favs[verKey]}else{_favs[verKey]=true}
+  if(jaFav){delete _favs[verKey];delete _favoritosTexto[verKey]}
+  else{_favs[verKey]=true;_favoritosTexto[verKey]=texto}
   // Atualizar ícone na leitura
   const btn=document.querySelector(`[data-fav-key="${verKey}"]`);
   if(btn)btn.textContent=jaFav?'☆':'⭐';
@@ -1327,7 +1331,7 @@ function filtrarMarcador(cor){
 
   let items=[];
   if(cor==='fav'){
-    items=Object.keys(_favs).map(k=>({key:k,texto:_grifosTexto[k]||'',cor:'#c9a84c',corNome:'Favorito'}));
+    items=Object.keys(_favs).map(k=>({key:k,texto:_favoritosTexto[k]||_grifosTexto[k]||'',cor:'#c9a84c',corNome:'Favorito'}));
   } else {
     items=Object.keys(_grifos).filter(k=>_grifos[k]===cor).map(k=>{
       const info=CORES_GRIFO.find(c=>c.nome===cor);
@@ -1365,7 +1369,7 @@ function formatarRefVer(key){
 }
 
 async function removerMarcador(verKey,tipo){
-  if(tipo==='fav'){delete _favs[verKey];await db.collection('users').doc(uid()).update({[`favoritos.${verKey}`]:false}).catch(()=>{})}
+  if(tipo==='fav'){delete _favs[verKey];delete _favoritosTexto[verKey];await db.collection('users').doc(uid()).update({[`favoritos.${verKey}`]:false,[`favoritosTexto.${verKey}`]:firebase.firestore.FieldValue.delete()}).catch(()=>{})}
   else{delete _grifos[verKey];await db.collection('users').doc(uid()).update({[`grifos.${verKey}`]:firebase.firestore.FieldValue.delete()}).catch(()=>{})}
   renderMarcadores();
   toast('🗑 Removido!');
