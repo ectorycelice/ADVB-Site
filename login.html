@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- SEGURANÇA: Content Security Policy — bloqueia scripts e estilos de fontes não autorizadas -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src https://fonts.gstatic.com;
+  img-src 'self' data: https:;
+  connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://firestore.googleapis.com;
+  frame-src https://accounts.google.com;
+">
+<title>Entrar — Igreja App</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c9a84c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ADVB">
+<link rel="apple-touch-icon" href="icon.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;600&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #c9a84c;
+  --gold-light: #e8c97a;
+  --gold-dim: rgba(201,168,76,0.15);
+  --dark: #0d0d1a;
+  --dark2: #12122a;
+  --dark3: #1a1a40;
+  --white: #f8f4ee;
+  --text: #e0d8c8;
+  --muted: #8a7f70;
+  --card-bg: rgba(255,255,255,0.04);
+  --card-border: rgba(201,168,76,0.18);
+  --danger: #e07b5a;
+  --success: #5aad7b;
+  --radius: 18px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh}
+body{
+  font-family:'Lato',sans-serif;
+  background:var(--dark);
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  position:relative;
+  overflow-x:hidden;
+  transition:background .3s;
+}
+#bgLayer{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;pointer-events:none}
+#bgOverlay{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 80% 60% at 20% 10%,rgba(15,52,96,0.6) 0%,transparent 70%),
+             radial-gradient(ellipse 60% 60% at 80% 90%,rgba(201,168,76,0.07) 0%,transparent 70%)}
+.wrap{width:100%;max-width:420px;position:relative;z-index:1;}
+
+.logo{text-align:center;margin-bottom:36px;animation:fadeUp .6s ease both}
+.logo-star{font-size:2.8rem;display:block;margin-bottom:10px;filter:drop-shadow(0 0 20px rgba(201,168,76,.5));animation:pulse 3s ease infinite}
+@keyframes pulse{0%,100%{filter:drop-shadow(0 0 20px rgba(201,168,76,.5))}50%{filter:drop-shadow(0 0 40px rgba(201,168,76,.9))}}
+.logo h1{font-family:'Cinzel',serif;font-size:1.9rem;color:var(--gold);letter-spacing:5px;text-shadow:0 2px 30px rgba(201,168,76,.3)}
+.logo p{color:var(--muted);font-size:.72rem;letter-spacing:3px;text-transform:uppercase;margin-top:6px}
+
+.card{background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--radius);padding:36px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);animation:fadeUp .6s .1s ease both;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+
+.tabs{display:flex;gap:4px;background:rgba(0,0,0,.25);border-radius:50px;padding:4px;margin-bottom:28px}
+.tab{flex:1;padding:10px;border:none;border-radius:50px;background:transparent;color:var(--muted);font-family:'Lato',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .25s;letter-spacing:.5px}
+.tab.active{background:var(--gold);color:var(--dark)}
+
+.form{display:none;flex-direction:column;gap:16px}
+.form.active{display:flex;animation:fadeUp .3s ease}
+.field{display:flex;flex-direction:column;gap:6px}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted)}
+.input-wrap{position:relative}
+.icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-style:normal;font-size:1rem}
+input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--card-border);border-radius:10px;padding:13px 16px 13px 42px;color:var(--white);font-family:'Lato',sans-serif;font-size:.95rem;transition:all .2s;}
+input:focus{outline:none;border-color:var(--gold);background:rgba(201,168,76,.05)}
+input::placeholder{color:var(--muted)}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:4px;transition:color .2s}
+.eye-btn:hover{color:var(--gold)}
+.strength{display:flex;gap:4px;margin-top:5px}
+.s-bar{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.1);transition:background .3s}
+.s-bar.weak{background:#e07b5a}.s-bar.ok{background:var(--gold)}.s-bar.strong{background:#5aad7b}
+.error{background:rgba(224,123,90,.1);border:1px solid rgba(224,123,90,.3);border-radius:10px;padding:12px 14px;color:var(--danger);font-size:.87rem;display:none}
+.error.show{display:block;animation:fadeUp .2s ease}
+.submit{background:linear-gradient(135deg,var(--gold),var(--gold-light));color:var(--dark);border:none;padding:15px;border-radius:50px;font-family:'Lato',sans-serif;font-weight:900;font-size:1rem;letter-spacing:1px;cursor:pointer;transition:all .25s;margin-top:4px;}
+.submit:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(201,168,76,.4)}
+.submit:disabled{opacity:.7;cursor:not-allowed;transform:none}
+.success-msg{text-align:center;padding:10px 0;display:none}
+.success-msg.show{display:block;animation:fadeUp .4s ease}
+.success-msg .icon-big{font-size:3rem;display:block;margin-bottom:12px}
+.success-msg h3{color:var(--success);font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:6px}
+.success-msg p{color:var(--muted);font-size:.85rem}
+.footer{text-align:center;margin-top:20px;color:var(--muted);font-size:.78rem;animation:fadeUp .6s .2s ease both}
+.deco{position:fixed;bottom:-80px;right:-60px;font-size:420px;font-family:'Playfair Display',serif;color:var(--gold);opacity:.025;pointer-events:none;z-index:0;line-height:1}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark3);border:1px solid var(--gold);color:var(--white);padding:12px 24px;border-radius:50px;font-size:.88rem;opacity:0;pointer-events:none;transition:all .3s;z-index:999;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="bgLayer"></div>
+<div id="bgOverlay"></div>
+<div class="deco">✦</div>
+
+<div class="wrap">
+  <div class="logo">
+    <span class="logo-star">✦</span>
+    <h1 id="churchName">ADVB</h1>
+    <p>AD VILA BOCAINA</p>
+  </div>
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">Entrar</button>
+      <button class="tab" onclick="switchTab('register')">Cadastrar</button>
+    </div>
+    <div class="error" id="errMsg"></div>
+    <form class="form active" id="loginForm" onsubmit="doLogin(event)">
+      <div class="field">
+        <span class="label">E-mail</span>
+        <div class="input-wrap"><i class="icon">✉</i><input type="email" id="lEmail" placeholder="seu@email.com" autocomplete="email" required></div>
+      </div>
+      <div class="field">
+        <span class="label">Senha</span>
+        <div class="input-wrap"><i class="icon">🔒</i><input type="password" id="lPwd" placeholder="••••••••" autocomplete="current-password" required><button type="button" class="eye-btn" onclick="toggleEye('lPwd',this)">👁</button></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--muted);cursor:pointer">
+  <input type="checkbox" id="manterLogado" style="accent-color:var(--gold);width:15px;height:15px;cursor:pointer">
+  Manter-me conectado
+</label>
+      <button type="submit" class="submit" id="lBtn">Entrar</button>
+      <button type="button" onclick="forgotPassword()" style="background:none;border:none;color:var(--muted);font-size:.8rem;cursor:pointer;text-align:center;width:100%;margin-top:4px;font-family:'Lato',sans-serif;transition:color .2s" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'">🔑 Esqueci minha senha</button>
+      <div style="display:flex;align-items:center;gap:10px;margin:8px 0"><div style="flex:1;height:1px;background:var(--card-border)"></div><span style="color:var(--muted);font-size:.75rem">ou</span><div style="flex:1;height:1px;background:var(--card-border)"></div></div>
+      <button type="button" onclick="loginWithGoogle()" style="background:rgba(255,255,255,.06);border:1px solid var(--card-border);color:var(--white);padding:13px;border-radius:50px;font-family:'Lato',sans-serif;font-size:.92rem;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .25s" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.7-.1-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.1 18.9 12 24 12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.2 0-9.5-2.9-11.3-7l-6.6 5.1C9.8 39.7 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.5-2.6 4.6-4.8 6l6.2 5.2C40.4 36.2 44 30.6 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+        Entrar com Google
+      </button>
+    </form>
+    <form class="form" id="regForm" onsubmit="doRegister(event)">
+      <div class="field">
+        <span class="label">Nome</span>
+        <div class="input-wrap"><i class="icon">👤</i><input type="text" id="rName" placeholder="Seu nome completo" autocomplete="name" required></div>
+      </div>
+      <div class="field">
+        <span class="label">E-mail</span>
+        <div class="input-wrap"><i class="icon">✉</i><input type="email" id="rEmail" placeholder="seu@email.com" autocomplete="email" required></div>
+      </div>
+      <div class="field">
+        <span class="label">Senha</span>
+        <div class="input-wrap"><i class="icon">🔒</i><input type="password" id="rPwd" placeholder="Mínimo 6 caracteres" oninput="checkStrength(this.value)" autocomplete="new-password" required><button type="button" class="eye-btn" onclick="toggleEye('rPwd',this)">👁</button></div>
+        <div class="strength"><div class="s-bar" id="b1"></div><div class="s-bar" id="b2"></div><div class="s-bar" id="b3"></div></div>
+      </div>
+      <div class="field">
+        <span class="label">Confirmar senha</span>
+        <div class="input-wrap"><i class="icon">🔒</i><input type="password" id="rConf" placeholder="Repita a senha" autocomplete="new-password" required></div>
+      </div>
+      <div class="success-msg" id="regOk"><span class="icon-big">✅</span><h3>Conta criada!</h3><p>Entrando no app...</p></div>
+      <button type="submit" class="submit" id="rBtn">Criar conta</button>
+    </form>
+  </div>
+  <div class="footer">
+  ADVB · Todos os direitos reservados
+  <br><br>
+  <a href="https://www.instagram.com/admauavilabocaina/" target="_blank" 
+     style="color:var(--gold);text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:.85rem">
+    📷 Siga no Instagram
+  </a>
+</div>
+</div>
+<div id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyD5uliRMWDoa04qQtz_0QANACd6AvE35gA",
+  authDomain: "advb-9b098.firebaseapp.com",
+  projectId: "advb-9b098",
+  storageBucket: "advb-9b098.firebasestorage.app",
+  messagingSenderId: "461526610041",
+  appId: "1:461526610041:web:6b6b456b2c60cc4c3e64a8"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+const SESSION_KEY='igrejaSession';
+function getSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY))}catch{return null}}
+// SEGURANÇA: hash de senha removido — autenticação é 100% via Firebase Auth.
+// O Firebase usa bcrypt internamente; nunca implemente hash manual no frontend.
+function genId(){return'u_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+
+// SEGURANÇA: Sanitização contra XSS — sempre usar ao exibir dados externos em HTML
+function sanitize(str){
+  if(str==null)return'';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#x27;')
+    .replace(/\//g,'&#x2F;');
+}
+
+// SEGURANÇA: Ofuscação simples do e-mail salvo no localStorage (base64)
+// Não é criptografia forte, mas evita exposição direta em texto puro
+function encodeEmail(e){try{return btoa(unescape(encodeURIComponent(e)))}catch{return''}}
+function decodeEmail(e){try{return decodeURIComponent(escape(atob(e)))}catch{return''}}
+
+// Apply background
+function applyLoginBgConfig(cfg){
+  try{
+    const layer=document.getElementById('bgLayer');
+    const overlay=document.getElementById('bgOverlay');
+    if(cfg.type==='color'){layer.style.background=cfg.color||'#0d0d1a';layer.style.backgroundImage='none'}
+    else if(cfg.type==='gradient'){layer.style.background=cfg.gradient||'linear-gradient(135deg,#0d0d1a,#1a1a40)';layer.style.backgroundImage='none'}
+    else if(cfg.type==='image'&&cfg.image){layer.style.backgroundImage=`url(${cfg.image})`;layer.style.backgroundSize='cover';layer.style.backgroundPosition='center';layer.style.opacity=cfg.opacity!=null?cfg.opacity:1}
+    if(cfg.overlayIntensity!=null){overlay.style.opacity=cfg.overlayIntensity}
+  }catch(e){}
+}
+// Aplica fundo salvo localmente enquanto carrega do Firebase
+try{applyLoginBgConfig(JSON.parse(localStorage.getItem('advb_bg_login')||'{}'))}catch{}
+
+// Buscar nome da igreja e fundo do Firebase
+async function initLoginPage(){
+  try{
+    const d=await db.collection('config').doc('igreja').get();
+    if(d.exists){
+      const data=d.data();
+      if(data.nome)document.getElementById('churchName').textContent=data.nome;
+    }
+    const bgDoc=await db.collection('config').doc('bg_login').get();
+    if(bgDoc.exists){
+      const bgCfg=bgDoc.data();
+      localStorage.setItem('advb_bg_login',JSON.stringify(bgCfg));
+      applyLoginBgConfig(bgCfg);
+    }
+  }catch(e){}
+}
+// Fallback para localStorage enquanto carrega
+const nome=localStorage.getItem('igrejaHome');
+if(nome) document.getElementById('churchName').textContent=nome;
+initLoginPage();
+
+if(getSession()) window.location.href='index.html';
+// SEGURANÇA: apenas o e-mail é lembrado, ofuscado em base64. Senha NUNCA é salva localmente.
+localStorage.removeItem('savedPwd'); // Apagar qualquer senha antiga de versões anteriores
+const _se=localStorage.getItem('savedEmail');
+const savedEmail=_se?decodeEmail(_se):'';
+if(savedEmail){
+  document.getElementById('lEmail').value=savedEmail;
+  document.getElementById('manterLogado').checked=true;
+}
+
+function switchTab(tab){
+  const isLogin=tab==='login';
+  document.getElementById('loginForm').className='form'+(isLogin?' active':'');
+  document.getElementById('regForm').className='form'+(!isLogin?' active':'');
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&isLogin)||(i===1&&!isLogin)));
+  clearErr();
+}
+function showErr(msg){const e=document.getElementById('errMsg');e.textContent=msg;e.className='error show'}
+function clearErr(){const e=document.getElementById('errMsg');e.textContent='';e.className='error'}
+function toggleEye(id,btn){const el=document.getElementById(id);el.type=el.type==='password'?'text':'password';btn.textContent=el.type==='password'?'👁':'🙈'}
+function checkStrength(p){const bars=['b1','b2','b3'].map(id=>document.getElementById(id));bars.forEach(b=>{b.className='s-bar'});if(!p)return;let score=0;if(p.length>=6)score++;if(p.length>=10)score++;if(/[A-Z]/.test(p)&&/[0-9]/.test(p))score++;const cls=['weak','ok','strong'][score-1]||'weak';for(let i=0;i<score;i++)bars[i].classList.add(cls)}
+async function register({name,email,password}){
+  if(!name||name.trim().length<2)return{ok:false,err:'Nome muito curto.'};
+  if(!email||!email.includes('@'))return{ok:false,err:'E-mail inválido.'};
+  if(!password||password.length<6)return{ok:false,err:'Senha deve ter ao menos 6 caracteres.'};
+  try{
+    const cred=await auth.createUserWithEmailAndPassword(email.trim(),password);
+    const uid=cred.user.uid;
+    const allUsers=await db.collection('users').get();
+    const user={id:uid,name:name.trim(),email:email.toLowerCase().trim(),role:allUsers.empty?'admin':'user',avatar:null,createdAt:Date.now(),streak:0,lastReadDate:null,lastBook:null,lastChapter:null};
+    await db.collection('users').doc(uid).set(user);
+    const session={id:uid,name:user.name,email:user.email,role:user.role,avatar:null};
+    localStorage.setItem(SESSION_KEY,JSON.stringify(session));
+    return{ok:true,user};
+  }catch(e){
+    if(e.code==='auth/email-already-in-use')return{ok:false,err:'E-mail já cadastrado.'};
+    if(e.code==='auth/weak-password')return{ok:false,err:'Senha muito fraca.'};
+    return{ok:false,err:'Erro ao criar conta. Tente novamente.'};
+  }
+}
+async function login({email,password}){
+  try{
+    const cred=await auth.signInWithEmailAndPassword(email.trim(),password);
+    const uid=cred.user.uid;
+    const snap=await db.collection('users').doc(uid).get();
+    if(!snap.exists){
+      // Criar perfil se não existir
+      const allUsers=await db.collection('users').get();
+      const user={id:uid,name:cred.user.displayName||email.split('@')[0],email:email.toLowerCase().trim(),role:allUsers.empty?'admin':'user',avatar:null,createdAt:Date.now(),streak:0,lastReadDate:null,lastBook:null,lastChapter:null};
+      await db.collection('users').doc(uid).set(user);
+      localStorage.setItem(SESSION_KEY,JSON.stringify({id:uid,name:user.name,email:user.email,role:user.role,avatar:null}));
+    }else{
+      const user=snap.data();
+      localStorage.setItem(SESSION_KEY,JSON.stringify({id:uid,name:user.name,email:user.email,role:user.role,avatar:user.avatar||null}));
+    }
+    return{ok:true};
+  }catch(e){
+    if(e.code==='auth/user-not-found')return{ok:false,err:'E-mail não encontrado.'};
+    if(e.code==='auth/wrong-password'||e.code==='auth/invalid-credential')return{ok:false,err:'Senha incorreta.'};
+    if(e.code==='auth/invalid-email')return{ok:false,err:'E-mail inválido.'};
+    return{ok:false,err:'Erro ao entrar. Tente novamente.'};
+  }
+}
+
+async function loginWithGoogle(){
+  try{
+    const cred=await auth.signInWithPopup(googleProvider);
+    const uid=cred.user.uid;
+    const snap=await db.collection('users').doc(uid).get();
+    if(!snap.exists){
+      // Novo usuário Google — criar perfil automaticamente
+      const allUsers=await db.collection('users').get();
+      const name=cred.user.displayName||cred.user.email.split('@')[0];
+      const user={
+        id:uid,
+        name:name,
+        email:cred.user.email,
+        role:allUsers.empty?'admin':'user',
+        avatar:cred.user.photoURL||null,
+        createdAt:Date.now(),
+        streak:0,
+        lastReadDate:null,
+        lastBook:null,
+        lastChapter:null
+      };
+      await db.collection('users').doc(uid).set(user);
+      localStorage.setItem(SESSION_KEY,JSON.stringify({id:uid,name:user.name,email:user.email,role:user.role,avatar:user.avatar}));
+      location.href='index.html';
+    }else{
+      // Usuário já existe — atualizar avatar se mudou
+      const user=snap.data();
+      if(cred.user.photoURL&&!user.avatar){
+        await db.collection('users').doc(uid).update({avatar:cred.user.photoURL});
+      }
+      localStorage.setItem(SESSION_KEY,JSON.stringify({id:uid,name:user.name,email:user.email,role:user.role,avatar:user.avatar||cred.user.photoURL||null}));
+      location.href='index.html';
+    }
+  }catch(e){
+    if(e.code!=='auth/popup-closed-by-user')showErr('Erro ao entrar com Google. Tente novamente.');
+  }
+}
+
+let _googleCred=null;
+function showCompleteProfile(cred){
+  _googleCred=cred;
+  const av=document.getElementById('cpAvatar');
+  if(cred.user.photoURL)av.innerHTML=`<img src="${cred.user.photoURL}" style="width:100%;height:100%;object-fit:cover">`;
+  else av.innerHTML=`<div style="width:100%;height:100%;background:rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;font-size:2rem;color:#c9a84c">👤</div>`;
+  document.getElementById('cpName').value=cred.user.displayName||'';
+  document.getElementById('cpPwd').value='';
+  document.getElementById('cpErr').style.display='none';
+  document.getElementById('completeProfileOverlay').style.display='flex';
+}
+
+function toggleCpPwd(){
+  const inp=document.getElementById('cpPwd');
+  const btn=document.getElementById('cpPwdEye');
+  inp.type=inp.type==='password'?'text':'password';
+  btn.textContent=inp.type==='password'?'👁':'🙈';
+}
+
+async function saveCompleteProfile(){
+  const name=document.getElementById('cpName').value.trim();
+  const pwd=document.getElementById('cpPwd').value;
+  const errEl=document.getElementById('cpErr');
+  if(!name||name.length<2){errEl.textContent='Nome muito curto!';errEl.style.display='block';return}
+  if(pwd&&pwd.length<6){errEl.textContent='Senha deve ter ao menos 6 caracteres!';errEl.style.display='block';return}
+  const btn=document.getElementById('cpSaveBtn');
+  btn.disabled=true;btn.textContent='Salvando...';
+  try{
+    const cred=_googleCred;
+    const uid=cred.user.uid;
+    // Adicionar senha se informada
+    if(pwd){
+      const emailCred=firebase.auth.EmailAuthProvider.credential(cred.user.email,pwd);
+      await cred.user.linkWithCredential(emailCred);
+    }
+    // Salvar perfil no Firestore
+    const allUsers=await db.collection('users').get();
+    const user={id:uid,name,email:cred.user.email,role:allUsers.empty?'admin':'user',avatar:cred.user.photoURL||null,createdAt:Date.now(),streak:0,lastReadDate:null,lastBook:null,lastChapter:null};
+    await db.collection('users').doc(uid).set(user);
+    localStorage.setItem(SESSION_KEY,JSON.stringify({id:uid,name:user.name,email:user.email,role:user.role,avatar:user.avatar}));
+    location.href='index.html';
+  }catch(e){
+    errEl.textContent='Erro ao salvar. Tente novamente.';
+    errEl.style.display='block';
+    btn.disabled=false;btn.textContent='Entrar no App';
+  }
+}
+
+async function forgotPassword(){
+  const email=document.getElementById('lEmail').value.trim();
+  if(!email){showErr('Digite seu e-mail primeiro.');return}
+  try{
+    await auth.sendPasswordResetEmail(email);
+    showErr('');
+    alert('✅ Email de recuperação enviado para '+email+'\nVerifique sua caixa de entrada!');
+  }catch(e){
+    if(e.code==='auth/user-not-found')showErr('E-mail não encontrado.');
+    else showErr('Erro ao enviar email. Tente novamente.');
+  }
+}
+async function doLogin(e){
+  e.preventDefault();clearErr();
+  // SEGURANÇA: Salvar apenas o e-mail (ofuscado em base64). NUNCA salvar senha.
+  if(document.getElementById('manterLogado').checked){
+    localStorage.setItem('savedEmail',encodeEmail(document.getElementById('lEmail').value));
+  }else{
+    localStorage.removeItem('savedEmail');
+  }
+  // Garantir que nenhuma senha antiga fique salva
+  localStorage.removeItem('savedPwd');
+  const btn=document.getElementById('lBtn');btn.disabled=true;btn.textContent='Entrando...';
+  const res=await login({email:document.getElementById('lEmail').value,password:document.getElementById('lPwd').value});
+  if(res.ok){btn.textContent='✅ Bem-vindo(a)!';setTimeout(()=>location.href='index.html',500)}
+  else{showErr(res.err);btn.disabled=false;btn.textContent='Entrar'}
+}
+async function doRegister(e){
+  e.preventDefault();clearErr();
+  const pwd=document.getElementById('rPwd').value;
+  const conf=document.getElementById('rConf').value;
+  if(pwd!==conf){showErr('As senhas não coincidem.');return}
+  const btn=document.getElementById('rBtn');btn.disabled=true;btn.textContent='Criando conta...';
+  const res=await register({name:document.getElementById('rName').value,email:document.getElementById('rEmail').value,password:pwd});
+  if(res.ok){
+    document.getElementById('regOk').className='success-msg show';
+    btn.style.display='none';
+    setTimeout(()=>location.href='index.html',1200);
+  }else{showErr(res.err);btn.disabled=false;btn.textContent='Criar conta'}
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+</script>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js').then(r=>console.log('SW registrado')).catch(e=>console.log('SW erro:',e));
+  });
+}
+</script>
+<!-- ══ COMPLETE PROFILE MODAL ══ -->
+<div id="completeProfileOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:999;backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
+  <div style="background:#12122a;border:1px solid rgba(201,168,76,.25);border-radius:18px;padding:36px;width:100%;max-width:420px;position:relative;animation:fadeUp .3s ease">
+    <div style="text-align:center;margin-bottom:24px">
+      <div id="cpAvatar" style="width:80px;height:80px;border-radius:50%;margin:0 auto 14px;overflow:hidden;border:2px solid rgba(201,168,76,.4)"></div>
+      <h2 style="font-family:'Cinzel',serif;color:#c9a84c;font-size:1.3rem;margin-bottom:6px">Bem-vindo! 🎉</h2>
+      <p style="color:#8a7f70;font-size:.84rem">Complete seu perfil para continuar</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;color:#8a7f70;display:block;margin-bottom:6px">Seu nome *</label>
+        <input id="cpName" type="text" placeholder="Como quer ser chamado?" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.18);border-radius:10px;padding:13px 16px;color:#f8f4ee;font-family:'Lato',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='rgba(201,168,76,.18)'">
+      </div>
+      <div>
+        <label style="font-size:.72rem;text-transform:uppercase;letter-spacing:1.5px;color:#8a7f70;display:block;margin-bottom:6px">Criar senha (opcional)</label>
+        <div style="position:relative">
+          <input id="cpPwd" type="password" placeholder="Mínimo 6 caracteres" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.18);border-radius:10px;padding:13px 42px 13px 16px;color:#f8f4ee;font-family:'Lato',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='#c9a84c'" onblur="this.style.borderColor='rgba(201,168,76,.18)'">
+          <button type="button" onclick="toggleCpPwd()" id="cpPwdEye" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#8a7f70;cursor:pointer;font-size:1rem">👁</button>
+        </div>
+        <p style="font-size:.72rem;color:#8a7f70;margin-top:5px">💡 Com senha você pode entrar também por email</p>
+      </div>
+      <div id="cpErr" style="display:none;background:rgba(224,123,90,.1);border:1px solid rgba(224,123,90,.3);border-radius:10px;padding:10px 14px;color:#e07b5a;font-size:.85rem"></div>
+      <button id="cpSaveBtn" onclick="saveCompleteProfile()" style="background:linear-gradient(135deg,#c9a84c,#e8c97a);color:#0d0d1a;border:none;padding:15px;border-radius:50px;font-family:'Lato',sans-serif;font-weight:900;font-size:1rem;cursor:pointer;transition:all .25s;margin-top:4px" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+        ✦ Entrar no App
+      </button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
